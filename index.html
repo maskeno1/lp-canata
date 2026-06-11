@@ -319,25 +319,6 @@
 <script src="js/main.js"></script>
 <script>
 (function () {
-  var DEFAULT_BADGES = [
-    {label: '技術士（電気電子部門）'},
-    {label: '経営・人事コンサルタント'}
-  ];
-  function renderBadges(badges) {
-    var list = document.getElementById('badgeList');
-    if (!list) return;
-    list.innerHTML = '';
-    badges.forEach(function (b) {
-      var span = document.createElement('span');
-      span.className = 'profile__badge';
-      span.textContent = b.label || '';
-      list.appendChild(span);
-    });
-  }
-  fetch('/api/badges').then(function (r) { return r.json(); }).then(renderBadges).catch(function () { renderBadges(DEFAULT_BADGES); });
-})();
-
-(function () {
   var navImg  = document.getElementById('navLogoImg');
   var navSvg  = document.getElementById('navLogoSvg');
   var ftImg   = document.getElementById('footerLogoImg');

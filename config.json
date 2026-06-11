@@ -1,5 +1,6 @@
 {
   "admin_password": "canata",
+  "admin_password_hash": "6571266025bb051b058893e23058f63a8061d05784363ee95d388a3d757d3487",
   "contact_email": "shibata@canata-consult.jp",
   "smtp_host": "",
   "smtp_port": "587",
