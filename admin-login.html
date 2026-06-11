@@ -135,27 +135,79 @@
   </div>
 
   <script>
+    // SHA-256 ハッシュ生成（Web Crypto API）
+    async function sha256(text) {
+      const buf = await crypto.subtle.digest('SHA-256',
+        new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // セッション保存（localStorageにハッシュを記録）
+    function saveSession(hash) {
+      localStorage.setItem('admin_auth', hash);
+      localStorage.setItem('admin_auth_ts', Date.now().toString());
+    }
+
     document.getElementById('loginForm').addEventListener('submit', async function (e) {
       e.preventDefault();
-      const pw = document.getElementById('password').value;
+      const pw  = document.getElementById('password').value;
       const err = document.getElementById('errorMsg');
+      const btn = document.querySelector('.btn-login');
       err.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = '確認中...';
 
       try {
+        // ① まず管理サーバー（/api/login）を試みる
         const res = await fetch('/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password: pw })
         });
         if (res.ok) {
+          const hash = await sha256(pw);
+          saveSession(hash);
+          window.location.href = '/admin.html';
+          return;
+        } else {
+          // サーバーがあるがパスワードが違う
+          err.textContent = 'パスワードが正しくありません。';
+          err.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'ログイン';
+          return;
+        }
+      } catch (_) {
+        // ② 管理サーバーなし（Netlify静的配信）→ config.json で照合
+      }
+
+      try {
+        const cfgRes = await fetch('/config.json?_=' + Date.now());
+        if (!cfgRes.ok) throw new Error('config.json not found');
+        const cfg  = await cfgRes.json();
+        const hash = await sha256(pw);
+
+        // config.json に admin_password_hash があればハッシュ比較
+        // なければ平文比較（後方互換）
+        const correct = cfg.admin_password_hash
+          ? hash === cfg.admin_password_hash
+          : pw   === cfg.admin_password;
+
+        if (correct) {
+          saveSession(hash);
           window.location.href = '/admin.html';
         } else {
+          err.textContent = 'パスワードが正しくありません。';
           err.style.display = 'block';
         }
       } catch (ex) {
-        err.textContent = 'サーバーに接続できません。start-server.bat を起動してください。';
+        err.textContent = '設定ファイルの読み込みに失敗しました。';
         err.style.display = 'block';
       }
+
+      btn.disabled = false;
+      btn.textContent = 'ログイン';
     });
   </script>
 </body>
