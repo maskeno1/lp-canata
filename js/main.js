@@ -238,28 +238,45 @@
   // ===== Services グリッド =====
   var servicesGrid = document.getElementById('servicesGrid');
   if (servicesGrid) {
-    // localStorageに保存済みがあれば優先、なければJSONファイルから取得
+    var DEFAULT_SERVICES = [
+      {title: '経営コーチング',  text: '定期的な1on1セッションを通じ、経営者が自らの思考を整理し、意思決定の質を高めます。外部の視点と問いかけで、見えていなかった課題に気づくきっかけを提供します。'},
+      {title: '組織診断・改善', text: '現状の組織課題を多角的に診断し、改善計画を立案・実行支援します。社内コミュニケーション、チームビルディング、マネジメント層の強化まで幅広く対応します。'},
+      {title: '人事制度設計',   text: '評価制度・給与体系・採用戦略など、組織の成長を支える人事の仕組みをゼロから構築・見直します。人が活きる環境づくりをサポートします。'}
+    ];
     var cachedSvc = localStorage.getItem('kanata_services');
     if (cachedSvc) {
-      try { renderServicesGrid(JSON.parse(cachedSvc)); } catch(_){}
+      try { renderServicesGrid(JSON.parse(cachedSvc)); } catch(_){ renderServicesGrid(DEFAULT_SERVICES); }
+    } else {
+      renderServicesGrid(DEFAULT_SERVICES);
     }
-    fetch('/services.json?_=' + Date.now())
-      .then(function(r){ return r.json(); })
-      .then(function(items){ renderServicesGrid(items); })
-      .catch(function(){});
+    if (!cachedSvc) {
+      fetch('/services.json?_=' + Date.now())
+        .then(function(r){ if (!r.ok) throw new Error('not ok'); return r.json(); })
+        .then(function(items){ renderServicesGrid(items); })
+        .catch(function(){});
+    }
   }
 
   // ===== Strengths グリッド =====
   var strengthsGrid = document.getElementById('strengthsGrid');
   if (strengthsGrid) {
+    var DEFAULT_STRENGTHS = [
+      {title: '論理的アプローチ×コーチング', text: '技術士として培った論理的・体系的な思考で、感覚ではなく構造で組織課題を整理。コーチングの問いかけと組み合わせることで、再現性のある改善策を導き出します。'},
+      {title: '経営者との対話を最優先に',     text: '答えを押しつけず、問いかけと傾聴で経営者自身の気づきを引き出すスタイル。信頼関係に基づいた長期的なパートナーシップが、持続的な組織変革を生み出します。'},
+      {title: '現場を知る実践知',             text: '大手企業での豊富なプロジェクト経験をもとに、理論だけでなく実際に機能する施策を提案。経営者の現場感覚に合わせた、地に足のついた支援を行います。'}
+    ];
     var cachedStr = localStorage.getItem('kanata_strengths');
     if (cachedStr) {
-      try { renderStrengthsGrid(JSON.parse(cachedStr)); } catch(_){}
+      try { renderStrengthsGrid(JSON.parse(cachedStr)); } catch(_){ renderStrengthsGrid(DEFAULT_STRENGTHS); }
+    } else {
+      renderStrengthsGrid(DEFAULT_STRENGTHS);
     }
-    fetch('/strengths.json?_=' + Date.now())
-      .then(function(r){ return r.json(); })
-      .then(function(items){ renderStrengthsGrid(items); })
-      .catch(function(){});
+    if (!cachedStr) {
+      fetch('/strengths.json?_=' + Date.now())
+        .then(function(r){ if (!r.ok) throw new Error('not ok'); return r.json(); })
+        .then(function(items){ renderStrengthsGrid(items); })
+        .catch(function(){});
+    }
   }
 
   // ===== Badges リスト =====
