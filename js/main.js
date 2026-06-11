@@ -228,12 +228,47 @@ if (contactForm && formSuccess) {
 
     var formData = new FormData(contactForm);
 
-    try {
+    // 管理サーバー（/api/contact）が存在するか確認してから送信を切り替える
+    async function tryAdminApi() {
+      var payload = {
+        name:    formData.get('name')    || '',
+        company: formData.get('company') || '',
+        email:   formData.get('email')   || '',
+        tel:     formData.get('tel')     || '',
+        subject: formData.get('subject') || '',
+        message: formData.get('message') || ''
+      };
+      var res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      return res;
+    }
+
+    async function tryNetlify() {
       var res = await fetch('/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams(formData).toString()
       });
+      return res;
+    }
+
+    try {
+      var res;
+      // まず /api/ping で管理サーバーの存在を確認
+      try {
+        var ping = await fetch('/api/ping', { method: 'GET' });
+        if (ping.ok) {
+          res = await tryAdminApi();
+        } else {
+          res = await tryNetlify();
+        }
+      } catch (_) {
+        // 管理サーバーが起動していない場合はNetlifyフォームへフォールバック
+        res = await tryNetlify();
+      }
 
       if (res.ok) {
         contactForm.style.display = 'none';
