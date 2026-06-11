@@ -1,0 +1,8 @@
+{
+  "admin_password": "canata",
+  "contact_email": "shibata@canata-consult.jp",
+  "smtp_host": "",
+  "smtp_port": "587",
+  "smtp_user": "",
+  "smtp_pass": ""
+}

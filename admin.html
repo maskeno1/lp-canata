@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理画面 - 株式会社かなた</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --g:   #2F8FE0;
+      --gd:  #1A6DB5;
+      --gp:  #EBF4FD;
+      --t:   #1A2B3C;
+      --tm:  #3D5A70;
+      --tl:  #6B85A0;
+      --bd:  #D0E5F5;
+      --w:   #fff;
+      --bg:  #F4F8FD;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--t); }
+
+    /* Layout */
+    .layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      background: #0B2D52;
+      color: rgba(255,255,255,.8);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar__header {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .sidebar__logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .sidebar__logo svg { color: var(--g); }
+    .sidebar__sub { font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .1em; }
+    .sidebar__nav { padding: 16px 12px; flex: 1; }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 14px;
+      background: none;
+      border: none;
+      border-radius: 6px;
+      color: rgba(255,255,255,.65);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: background .2s, color .2s;
+      margin-bottom: 2px;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .nav-btn.active { background: rgba(47,143,224,.18); color: var(--g); }
+    .nav-btn svg { flex-shrink: 0; opacity: .7; }
+    .nav-btn.active svg { opacity: 1; }
+    .sidebar__footer {
+      padding: 16px 12px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sidebar__link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: rgba(255,255,255,.45);
+      text-decoration: none;
+      transition: color .2s, background .2s;
+    }
+    .sidebar__link:hover { color: #fff; background: rgba(255,255,255,.07); }
+
+    /* Main */
+    .main { padding: 36px 40px; max-width: 1000px; }
+    .main-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .main-title { font-size: 22px; font-weight: 700; }
+    .main-sub { font-size: 13px; color: var(--tl); margin-top: 4px; }
+    .badge {
+      background: var(--gp);
+      color: var(--gd);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* Tab panels */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Cards */
+    .card {
+      background: var(--w);
+      border-radius: 10px;
+      border: 1px solid var(--bd);
+      padding: 28px 32px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gd);
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--bd);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .dot {
+      width: 8px; height: 8px;
+      background: var(--g);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Form controls */
+    .f-group { margin-bottom: 16px; }
+    .f-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--tm);
+      margin-bottom: 6px;
+      letter-spacing: .04em;
+    }
+    .f-input, .f-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--bd);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--t);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .f-input:focus, .f-textarea:focus {
+      border-color: var(--g);
+      box-shadow: 0 0 0 3px rgba(47,143,224,.12);
+    }
+    .f-textarea { resize: vertical; min-height: 80px; line-height: 1.7; }
+    .f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* Buttons */
+    .btn {
+      padding: 10px 22px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: all .2s;
+    }
+    .btn-primary { background: var(--g); color: #fff; }
+    .btn-primary:hover { background: var(--gd); }
+    .btn-ghost { background: transparent; color: var(--tm); border-color: var(--bd); }
+    .btn-ghost:hover { border-color: var(--g); color: var(--g); }
+    .btn-danger { background: transparent; color: #dc2626; border-color: #fca5a5; }
+    .btn-danger:hover { background: #fef2f2; }
+    .btn-sm { padding: 7px 14px; font-size: 12px; }
+    .btn-actions { display: flex; gap: 8px; margin-top: 18px; justify-content: flex-end; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      background: var(--t);
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all .3s;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .toast.success { background: var(--gd); }
+    .toast.error   { background: #b91c1c; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* Contacts table */
+    .contacts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .contacts-table th {
+      background: var(--gp);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--gd);
+      border-bottom: 2px solid var(--bd);
+    }
+    .contacts-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--bd);
+      vertical-align: top;
+    }
+    .contacts-table tr:last-child td { border-bottom: none; }
+    .contacts-table tr:hover td { background: var(--gp); }
+    .tag {
+      display: inline-block;
+      background: var(--gp);
+      color: var(--gd);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--tl);
+    }
+    .empty-state svg { margin: 0 auto 16px; color: var(--bd); }
+    .empty-state p { font-size: 14px; }
+
+    /* Section grid for content editor */
+    .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    /* Photo upload */
+    .photo-previews { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .photo-box__label { font-size: 11px; font-weight: 600; color: var(--tl); letter-spacing:.1em; text-transform:uppercase; margin-bottom: 8px; }
+    .photo-box__frame {
+      background: var(--gp);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid var(--bd);
+    }
+    .photo-box__frame img { width: 100%; height: auto; display: block; }
+    .photo-box__frame.transparent-bg {
+      background: repeating-conic-gradient(#d4d4d4 0% 25%, #fff 0% 50%) 0 0 / 16px 16px;
+    }
+    .photo-empty { font-size: 12px; color: var(--tl); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .photo-empty svg { color: var(--bd); }
+    .drop-zone {
+      border: 2px dashed var(--bd);
+      border-radius: 8px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--g); background: var(--gp); }
+    .drop-zone svg { color: var(--tl); margin: 0 auto 12px; display: block; }
+    .drop-zone p { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .drop-zone small { font-size: 12px; color: var(--tl); }
+    .rembg-note {
+      font-size: 12px;
+      color: #92400e;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      padding: 10px 14px;
+      border-radius: 4px;
+      margin-top: 12px;
+      line-height: 1.6;
+      display: none;
+    }
+    .processing-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--gd);
+      margin-top: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 14px; height: 14px; border: 2px solid var(--bd); border-top-color: var(--g); border-radius: 50%; animation: spin .7s linear infinite; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; }
+      .main { padding: 24px 20px; }
+      .section-grid { grid-template-columns: 1fr; }
+      .f-row { grid-template-columns: 1fr; }
+      .photo-previews { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar__header">
+      <div class="sidebar__logo">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="2"/>
+          <path d="M7 16 Q12 9 16 16 Q20 23 25 16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+        株式会社かなた
+      </div>
+      <span class="sidebar__sub">管理画面</span>
+    </div>
+    <nav class="sidebar__nav">
+      <button class="nav-btn active" data-tab="content">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        コンテンツ編集
+      </button>
+      <button class="nav-btn" data-tab="contacts">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zM2 8l10 7 10-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        お問い合わせ
+        <span class="badge" id="contactCount">0</span>
+      </button>
+      <button class="nav-btn" data-tab="settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.8"/></svg>
+        メール設定
+      </button>
+      <button class="nav-btn" data-tab="password">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        管理者設定
+      </button>
+    </nav>
+    <div class="sidebar__footer">
+      <a class="sidebar__link" href="/index.html" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        サイトを見る
+      </a>
+      <a class="sidebar__link" href="/api/logout" id="logoutBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        ログアウト
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ===== Tab: コンテンツ編集 ===== -->
+    <div class="tab-panel active" id="tab-content">
+      <div class="main-header">
+        <div>
+          <h1 class="main-title">コンテンツ編集</h1>
+          <p class="main-sub">各セクションのテキストを編集できます</p>
+        </div>
+      </div>
+
+      <!-- ヒーロー -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>ヒーローセクション</div>
+        <div class="f-group">
+          <label class="f-label">サブテキスト（資格・肩書き）</label>
+          <input class="f-input" data-key="hero-eyebrow" value="経営者に寄り添い、組織の課題をともに解決する">
+        </div>
+        <div class="f-row">
+          <div class="f-group">
+            <label class="f-label">キャッチコピー1行目</label>
+            <input class="f-input" data-key="hero-line1" value="人が動けば、">
+          </div>
+          <div class="f-group">
+            <label class="f-label">キャッチコピー2行目（青色）</label>
+            <input class="f-input" data-key="hero-line2" value="組織が変わる。">
+          </div>
+        </div>
+        <div class="f-group">
+          <label class="f-label">サービス概要テキスト</label>
+          <input class="f-input" data-key="hero-sub" value="経営コーチング / 組織改革 / 人事制度設計">
+        </div>
+        <div class="btn-actions">
+          <button class="btn btn-primary" onclick="saveSection('hero')">保存</button>
+        </div>
+      </div>
+
+      <!-- かなたについて -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>かなたについて</div>
+        <div class="f-group">
+          <label class="f-label">キャッチフレーズ</label>
+          <input class="f-input" data-key="about-catch" value="「かなた」が目指すもの">
+        </div>
+        <div class="f-group">
+          <label class="f-label">本文1</label>
+          <textarea class="f-textarea" data-key="about-text2">代表の柴田朋浩は技術士（電気電子部門）の国家資格を持ち、大手電気工事会社で培った豊富な現場経験を背景に株式会社かなたを設立。確かな専門知識と誠実な仕事ぶりで、お客様の課題に向き合います。</textarea>
+        </div>
+        <div class="f-group">
+          <label class="f-label">本文3</label>
+          <textarea class="f-textarea" data-key="about-text3">規模の大小を問わず、一件一件のプロジェクトに真摯に取り組むこと。それが私たちのスタイルです。</textarea>
+        </div>
+        <div class="card-title" style="margin-top:20px"><span class="dot"></span>会社概要</div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">会社名</label><input class="f-input" data-key="company-name" value="株式会社かなた"></div>
+          <div class="f-group"><label class="f-label">代表取締役</label><input class="f-input" data-key="company-ceo" value="柴田 朋浩"></div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">設立</label><input class="f-input" data-key="company-founded" value="2024年"></div>
+          <div class="f-group"><label class="f-label">電話番号</label><input class="f-input" data-key="company-tel" value="000-0000-0000"></div>
+        </div>
+        <div class="f-group"><label class="f-label">所在地</label><input class="f-input" data-key="company-address" value="〒000-0000 東京都○○区○○町0-0-0"></div>
+        <div class="f-group"><label class="f-label">事業内容</label><input class="f-input" data-key="company-business" value="経営コンサルティング・組織改革支援・人事制度設計"></div>
+        <div class="btn-actions">
+          <button class="btn btn-primary" onclick="saveSection('about')">保存</button>
+        </div>
+      </div>
+
+      <!-- 事業内容 -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>事業内容</div>
+        <div id="servicesList"></div>
+        <div style="margin-bottom:8px">
+          <button class="btn btn-ghost btn-sm" onclick="addService()">＋ サービスを追加</button>
+        </div>
+        <div class="btn-actions">
+          <button class="btn btn-primary" onclick="saveServices()">保存</button>
+        </div>
+      </div>
+
+      <!-- 選ばれる理由 -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>選ばれる理由</div>
+        <div id="strengthsList"></div>
+        <div style="margin-bottom:8px">
+          <button class="btn btn-ghost btn-sm" onclick="addStrength()">＋ 項目を追加</button>
+        </div>
+        <div class="btn-actions">
+          <button class="btn btn-primary" onclick="saveStrengths()">保存</button>
+        </div>
+      </div>
+
+      <!-- 代表紹介 -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>代表紹介</div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">役職</label><input class="f-input" data-key="profile-role" value="代表取締役"></div>
+          <div class="f-group"><label class="f-label">氏名</label><input class="f-input" data-key="profile-name" value="柴田 朋浩"></div>
+        </div>
+        <div style="margin-bottom:6px">
+          <label class="f-label">資格・肩書き</label>
+          <div id="badgesList"></div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addBadge()">＋ 資格を追加</button>
+        </div>
+        <div class="btn-actions" style="margin-bottom:4px">
+          <button class="btn btn-primary btn-sm" onclick="saveBadges()">資格を保存</button>
+        </div>
+        <div class="f-group">
+          <label class="f-label">メッセージ1</label>
+          <textarea class="f-textarea" data-key="profile-message1">大手電気工事会社にてキャリアを積み、電気設備設計から大規模プロジェクトの施工管理まで幅広く経験してきました。その経験の中で感じた「技術力と誠実な対応があれば、お客様の課題は必ず解決できる」という確信が、株式会社かなたを立ち上げる原動力となりました。</textarea>
+        </div>
+        <div class="f-group">
+          <label class="f-label">メッセージ2</label>
+          <textarea class="f-textarea" data-key="profile-message2">技術士として培った専門知識と、現場で磨いた実践力を活かし、お客様のプロジェクトを「かなた」—その先の可能性へと導けるよう、誠心誠意取り組んでまいります。</textarea>
+        </div>
+        <div class="f-group">
+          <label class="f-label">署名（右下の氏名）</label>
+          <input class="f-input" data-key="profile-sign" value="柴田 朋浩">
+        </div>
+        <div class="btn-actions">
+          <button class="btn btn-primary" onclick="saveSection('profile')">保存</button>
+        </div>
+      </div>
+
+      <!-- 代表者写真 -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>代表者写真</div>
+        <div style="max-width:200px;margin-bottom:20px">
+          <div class="photo-box__label">プレビュー</div>
+          <div class="photo-box__frame" id="photoCurrentFrame">
+            <div class="photo-empty">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <span>未設定</span>
+            </div>
+          </div>
+        </div>
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="photoFile" accept="image/jpeg,image/png,image/webp" style="display:none">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <p>クリックまたはドラッグして写真を選択</p>
+          <small>JPG / PNG / WEBP 対応</small>
+        </div>
+        <div class="btn-actions" style="margin-top:16px">
+          <button class="btn btn-primary" id="btnSavePhoto" onclick="saveProfilePhoto()" disabled>この写真を保存</button>
+        </div>
+      </div>
+
+      <!-- ヘッダーロゴ -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>ヘッダーロゴ画像</div>
+        <p style="font-size:12px;color:var(--tl);margin-bottom:16px;line-height:1.7">
+          ナビゲーションバーとフッターに表示するロゴ画像を設定します。<br>
+          背景透過PNG推奨。未設定の場合はデフォルトのSVGアイコンが表示されます。
+        </p>
+        <div class="photo-previews" style="margin-bottom:20px">
+          <div>
+            <div class="photo-box__label">現在のロゴ</div>
+            <div class="photo-box__frame transparent-bg" id="logoCurrentFrame" style="height:80px">
+              <div class="photo-empty">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="8.5" cy="10.5" r="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 16l4-4 4 4 3-3 4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                <span>未設定</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="photo-box__label">背景削除プレビュー</div>
+            <div class="photo-box__frame transparent-bg" id="logoRembgFrame" style="height:80px">
+              <div class="photo-empty">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10-4.5 10-10 10z" stroke="currentColor" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>処理後</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="drop-zone" id="logoDropZone">
+          <input type="file" id="logoFile" accept="image/jpeg,image/png,image/webp" style="display:none">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <p>クリックまたはドラッグしてロゴを選択</p>
+          <small>JPG / PNG / WEBP 対応</small>
+        </div>
+        <div class="rembg-note" id="logoRembgNote">
+          ⚠️ rembgがインストールされていません。背景削除を使用するには pip install "rembg[cpu]" を実行後、サーバーを再起動してください。
+        </div>
+        <div class="btn-actions" style="margin-top:16px;flex-wrap:wrap;gap:8px">
+          <button class="btn btn-ghost" id="btnLogoRembg" onclick="removeBgLogo()" disabled>背景を削除する</button>
+          <button class="btn btn-primary" id="btnSaveLogo" onclick="saveLogoImage()" disabled>このロゴを保存</button>
+        </div>
+        <div id="logoProcessing" style="display:none">
+          <div class="processing-badge"><div class="spinner"></div>背景削除中（数十秒かかります）…</div>
+        </div>
+      </div>
+
+      <!-- お問い合わせ・フッター -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>お問い合わせ・フッター</div>
+        <div class="f-group"><label class="f-label">お問い合わせ セクション説明文</label><input class="f-input" data-key="contact-desc" value="お気軽にご相談ください。通常2営業日以内にご返信いたします。"></div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">表示メールアドレス</label><input class="f-input" data-key="contact-email" value="shibata@canata-consult.jp"></div>
+          <div class="f-group"><label class="f-label">表示電話番号</label><input class="f-input" data-key="contact-tel" value="000-0000-0000"></div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">表示住所</label><input class="f-input" data-key="contact-address" value="東京都○○区○○町0-0-0"></div>
+          <div class="f-group"><label class="f-label">受付時間</label><input class="f-input" data-key="contact-hours" value="平日 9:00〜18:00"></div>
+        </div>
+        <div class="f-group"><label class="f-label">フッター会社名</label><input class="f-input" data-key="footer-name" value="株式会社かなた"></div>
+        <div class="f-group"><label class="f-label">フッター説明</label><input class="f-input" data-key="footer-desc" value="技術士による電気設備設計・施工管理・コンサルティング"></div>
+        <div class="btn-actions">
+          <button class="btn btn-primary" onclick="saveSection('contact-footer')">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Tab: お問い合わせ ===== -->
+    <div class="tab-panel" id="tab-contacts">
+      <div class="main-header">
+        <div>
+          <h1 class="main-title">お問い合わせ履歴</h1>
+          <p class="main-sub">フォームから送信された問い合わせ一覧</p>
+        </div>
+        <button class="btn btn-ghost" onclick="loadContacts()">更新</button>
+      </div>
+      <div class="card">
+        <div id="contactsBody">
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zM2 8l10 7 10-7" stroke="currentColor" stroke-width="1.5"/></svg>
+            <p>読み込み中…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Tab: メール設定 ===== -->
+    <div class="tab-panel" id="tab-settings">
+      <div class="main-header">
+        <div>
+          <h1 class="main-title">メール設定</h1>
+          <p class="main-sub">お問い合わせの送信先とSMTP設定</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>送信先メールアドレス</div>
+        <div class="f-group">
+          <label class="f-label">問い合わせ受信メールアドレス</label>
+          <input class="f-input" id="settingContactEmail" value="shibata@canata-consult.jp">
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>SMTP設定（メール自動送信）</div>
+        <p style="font-size:13px;color:var(--tl);margin-bottom:18px;line-height:1.7">
+          Gmailを使う場合：Googleアカウントで2段階認証を有効にし、「アプリパスワード」を発行してください。<br>
+          SMTP: smtp.gmail.com / ポート: 587
+        </p>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">SMTPホスト</label><input class="f-input" id="settingSmtpHost" placeholder="smtp.gmail.com"></div>
+          <div class="f-group"><label class="f-label">ポート</label><input class="f-input" id="settingSmtpPort" placeholder="587" type="number"></div>
+        </div>
+        <div class="f-row">
+          <div class="f-group"><label class="f-label">SMTPユーザー（Gmailアドレス）</label><input class="f-input" id="settingSmtpUser" placeholder="your@gmail.com"></div>
+          <div class="f-group"><label class="f-label">SMTPパスワード（アプリパスワード）</label><input class="f-input" id="settingSmtpPass" type="password" placeholder="16桁のアプリパスワード"></div>
+        </div>
+        <p style="font-size:12px;color:var(--tl);margin-bottom:18px">
+          ※ 未設定でも問い合わせ内容は管理画面に記録されます。メール送信のみ機能しません。
+        </p>
+        <div class="btn-actions">
+          <button class="btn btn-ghost btn-sm" onclick="testSmtp()">テスト送信</button>
+          <button class="btn btn-primary" onclick="saveSettings()">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Tab: 管理者設定 ===== -->
+    <div class="tab-panel" id="tab-password">
+      <div class="main-header">
+        <div>
+          <h1 class="main-title">管理者設定</h1>
+          <p class="main-sub">ログインパスワードの変更</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>パスワード変更</div>
+        <div class="f-group"><label class="f-label">現在のパスワード</label><input class="f-input" id="pwCurrent" type="password"></div>
+        <div class="f-group"><label class="f-label">新しいパスワード</label><input class="f-input" id="pwNew" type="password"></div>
+        <div class="f-group"><label class="f-label">新しいパスワード（確認）</label><input class="f-input" id="pwConfirm" type="password"></div>
+        <div class="btn-actions">
+          <button class="btn btn-primary" onclick="changePassword()">変更する</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ===== Tab switching =====
+  document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+      if (this.dataset.tab === 'contacts') loadContacts();
+      if (this.dataset.tab === 'settings') loadSettings();
+    });
+  });
+
+  // ===== Toast =====
+  function toast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    setTimeout(() => { t.classList.remove('show'); }, 3000);
+  }
+
+  // ===== Services (dynamic) =====
+  var servicesLocal = [];
+
+  async function loadServices() {
+    try {
+      const res = await fetch('/api/services');
+      if (res.ok) servicesLocal = await res.json();
+    } catch (_) {}
+    renderServicesList();
+  }
+
+  function renderServicesList() {
+    const list = document.getElementById('servicesList');
+    if (!list) return;
+    list.innerHTML = '';
+    servicesLocal.forEach(function (s, i) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--bd)';
+
+      const hdr = document.createElement('div');
+      hdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:10px';
+      const lbl = document.createElement('span');
+      lbl.style.cssText = 'font-size:11px;font-weight:700;color:var(--gd)';
+      lbl.textContent = 'サービス' + String(i + 1).padStart(2, '0');
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-danger btn-sm';
+      delBtn.textContent = '削除';
+      delBtn.onclick = function () { deleteService(i); };
+      hdr.appendChild(lbl);
+      hdr.appendChild(delBtn);
+      wrap.appendChild(hdr);
+
+      const tg = document.createElement('div'); tg.className = 'f-group';
+      const tl = document.createElement('label'); tl.className = 'f-label'; tl.textContent = 'タイトル';
+      const ti = document.createElement('input'); ti.className = 'f-input';
+      ti.value = s.title || ''; ti.dataset.svcTitle = i;
+      tg.appendChild(tl); tg.appendChild(ti); wrap.appendChild(tg);
+
+      const xg = document.createElement('div'); xg.className = 'f-group';
+      const xl = document.createElement('label'); xl.className = 'f-label'; xl.textContent = '説明文';
+      const xa = document.createElement('textarea'); xa.className = 'f-textarea';
+      xa.value = s.text || ''; xa.dataset.svcText = i;
+      xg.appendChild(xl); xg.appendChild(xa); wrap.appendChild(xg);
+
+      list.appendChild(wrap);
+    });
+  }
+
+  function addService() {
+    servicesLocal.push({ title: '', text: '' });
+    renderServicesList();
+    document.getElementById('servicesList').lastElementChild.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function deleteService(i) {
+    if (servicesLocal.length <= 1) { toast('最低1件は必要です', 'error'); return; }
+    servicesLocal.splice(i, 1);
+    renderServicesList();
+  }
+
+  async function saveServices() {
+    const list = document.getElementById('servicesList');
+    const titles = list.querySelectorAll('[data-svc-title]');
+    const texts  = list.querySelectorAll('[data-svc-text]');
+    servicesLocal = Array.from(titles).map(function (el, i) {
+      return { title: el.value, text: texts[i].value };
+    });
+    try {
+      const res = await fetch('/api/services', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(servicesLocal)
+      });
+      if (res.ok) toast('保存しました ✓');
+      else toast('保存に失敗しました', 'error');
+    } catch (_) { toast('サーバーに接続できません', 'error'); }
+  }
+
+  // ===== Strengths (dynamic) =====
+  var strengthsLocal = [];
+
+  async function loadStrengths() {
+    try {
+      const res = await fetch('/api/strengths');
+      if (res.ok) strengthsLocal = await res.json();
+    } catch (_) {}
+    renderStrengthsList();
+  }
+
+  function renderStrengthsList() {
+    const list = document.getElementById('strengthsList');
+    if (!list) return;
+    list.innerHTML = '';
+    strengthsLocal.forEach(function (s, i) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--bd)';
+
+      const hdr = document.createElement('div');
+      hdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:10px';
+      const lbl = document.createElement('span');
+      lbl.style.cssText = 'font-size:11px;font-weight:700;color:var(--gd)';
+      lbl.textContent = '強み' + String(i + 1).padStart(2, '0');
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-danger btn-sm';
+      delBtn.textContent = '削除';
+      delBtn.onclick = function () { deleteStrength(i); };
+      hdr.appendChild(lbl); hdr.appendChild(delBtn);
+      wrap.appendChild(hdr);
+
+      const tg = document.createElement('div'); tg.className = 'f-group';
+      const tl = document.createElement('label'); tl.className = 'f-label'; tl.textContent = 'タイトル';
+      const ti = document.createElement('input'); ti.className = 'f-input';
+      ti.value = s.title || ''; ti.dataset.strTitle = i;
+      tg.appendChild(tl); tg.appendChild(ti); wrap.appendChild(tg);
+
+      const xg = document.createElement('div'); xg.className = 'f-group';
+      const xl = document.createElement('label'); xl.className = 'f-label'; xl.textContent = '説明文';
+      const xa = document.createElement('textarea'); xa.className = 'f-textarea';
+      xa.value = s.text || ''; xa.dataset.strText = i;
+      xg.appendChild(xl); xg.appendChild(xa); wrap.appendChild(xg);
+
+      list.appendChild(wrap);
+    });
+  }
+
+  function addStrength() {
+    strengthsLocal.push({ title: '', text: '' });
+    renderStrengthsList();
+    document.getElementById('strengthsList').lastElementChild.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function deleteStrength(i) {
+    if (strengthsLocal.length <= 1) { toast('最低1件は必要です', 'error'); return; }
+    strengthsLocal.splice(i, 1);
+    renderStrengthsList();
+  }
+
+  async function saveStrengths() {
+    const list = document.getElementById('strengthsList');
+    const titles = list.querySelectorAll('[data-str-title]');
+    const texts  = list.querySelectorAll('[data-str-text]');
+    strengthsLocal = Array.from(titles).map(function (el, i) {
+      return { title: el.value, text: texts[i].value };
+    });
+    try {
+      const res = await fetch('/api/strengths', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(strengthsLocal)
+      });
+      if (res.ok) toast('保存しました ✓');
+      else toast('保存に失敗しました', 'error');
+    } catch (_) { toast('サーバーに接続できません', 'error'); }
+  }
+
+  // ===== Load & save content =====
+  async function loadContent() {
+    try {
+      const res = await fetch('/api/content');
+      if (!res.ok) return;
+      const data = await res.json();
+      Object.entries(data).forEach(([key, val]) => {
+        document.querySelectorAll(`[data-key="${key}"]`).forEach(el => {
+          if (el.tagName === 'TEXTAREA') el.value = val;
+          else el.value = val;
+        });
+      });
+    } catch (_) {}
+  }
+
+  async function saveSection(section) {
+    const payload = {};
+    // Collect all inputs for the clicked section
+    document.querySelectorAll('[data-key]').forEach(el => {
+      payload[el.dataset.key] = el.value;
+    });
+    try {
+      const res = await fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) toast('保存しました ✓');
+      else toast('保存に失敗しました', 'error');
+    } catch (_) {
+      toast('サーバーに接続できません', 'error');
+    }
+  }
+
+  // ===== Load contacts =====
+  async function loadContacts() {
+    const body = document.getElementById('contactsBody');
+    try {
+      const res = await fetch('/api/contacts');
+      const data = await res.json();
+      if (!data.length) {
+        body.innerHTML = `<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zM2 8l10 7 10-7" stroke="currentColor" stroke-width="1.5"/></svg><p>まだお問い合わせはありません</p></div>`;
+        document.getElementById('contactCount').textContent = '0';
+        return;
+      }
+      document.getElementById('contactCount').textContent = data.length;
+      let html = `<table class="contacts-table"><thead><tr><th>日時</th><th>氏名</th><th>メール</th><th>件名</th><th>メッセージ</th></tr></thead><tbody>`;
+      data.slice().reverse().forEach(c => {
+        html += `<tr>
+          <td style="white-space:nowrap;font-size:12px;color:var(--tl)">${c.date || ''}</td>
+          <td><strong>${esc(c.name)}</strong>${c.company ? '<br><span style="font-size:12px;color:var(--tl)">'+esc(c.company)+'</span>' : ''}</td>
+          <td><a href="mailto:${esc(c.email)}" style="color:var(--g)">${esc(c.email)}</a>${c.tel ? '<br><span style="font-size:12px">'+esc(c.tel)+'</span>' : ''}</td>
+          <td><span class="tag">${esc(c.subject)}</span></td>
+          <td style="max-width:300px;font-size:13px;white-space:pre-wrap">${esc(c.message)}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      body.innerHTML = html;
+    } catch (_) {
+      body.innerHTML = `<div class="empty-state"><p style="color:#dc2626">サーバーに接続できません</p></div>`;
+    }
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ===== Load settings =====
+  async function loadSettings() {
+    try {
+      const res = await fetch('/api/config');
+      if (!res.ok) return;
+      const cfg = await res.json();
+      document.getElementById('settingContactEmail').value = cfg.contact_email || '';
+      document.getElementById('settingSmtpHost').value = cfg.smtp_host || '';
+      document.getElementById('settingSmtpPort').value = cfg.smtp_port || '587';
+      document.getElementById('settingSmtpUser').value = cfg.smtp_user || '';
+    } catch (_) {}
+  }
+
+  async function saveSettings() {
+    const cfg = {
+      contact_email: document.getElementById('settingContactEmail').value,
+      smtp_host: document.getElementById('settingSmtpHost').value,
+      smtp_port: document.getElementById('settingSmtpPort').value,
+      smtp_user: document.getElementById('settingSmtpUser').value,
+      smtp_pass: document.getElementById('settingSmtpPass').value || undefined
+    };
+    try {
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cfg)
+      });
+      if (res.ok) toast('設定を保存しました ✓');
+      else toast('保存に失敗しました', 'error');
+    } catch (_) { toast('サーバーに接続できません', 'error'); }
+  }
+
+  async function testSmtp() {
+    toast('テスト送信中…');
+    try {
+      const res = await fetch('/api/test-smtp', { method: 'POST' });
+      const d = await res.json();
+      toast(res.ok ? 'テストメールを送信しました ✓' : (d.error || '送信失敗'), res.ok ? 'success' : 'error');
+    } catch (_) { toast('サーバーエラー', 'error'); }
+  }
+
+  // ===== Change password =====
+  async function changePassword() {
+    const cur = document.getElementById('pwCurrent').value;
+    const nw  = document.getElementById('pwNew').value;
+    const cfm = document.getElementById('pwConfirm').value;
+    if (nw !== cfm) { toast('新しいパスワードが一致しません', 'error'); return; }
+    if (nw.length < 6) { toast('パスワードは6文字以上にしてください', 'error'); return; }
+    try {
+      const res = await fetch('/api/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ current: cur, new: nw })
+      });
+      const d = await res.json();
+      if (res.ok) { toast('パスワードを変更しました ✓'); document.getElementById('pwCurrent').value = document.getElementById('pwNew').value = document.getElementById('pwConfirm').value = ''; }
+      else toast(d.error || '変更に失敗しました', 'error');
+    } catch (_) { toast('サーバーに接続できません', 'error'); }
+  }
+
+  // ===== Photo upload =====
+  let selectedPhotoData = null;
+
+  async function loadCurrentPhoto() {
+    try {
+      const res = await fetch('/images/profile.png', { method: 'HEAD' });
+      if (res.ok) {
+        const img = document.createElement('img');
+        img.src = '/images/profile.png?' + Date.now();
+        img.alt = '代表者写真';
+        const frame = document.getElementById('photoCurrentFrame');
+        frame.innerHTML = '';
+        frame.appendChild(img);
+      }
+    } catch (_) {}
+  }
+  loadCurrentPhoto();
+
+  const dropZone = document.getElementById('dropZone');
+  const photoFile = document.getElementById('photoFile');
+  if (dropZone && photoFile) {
+    dropZone.addEventListener('click', () => photoFile.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) loadPhotoFile(e.dataTransfer.files[0]);
+    });
+    photoFile.addEventListener('change', function () {
+      if (this.files[0]) loadPhotoFile(this.files[0]);
+    });
+  }
+
+  function loadPhotoFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      selectedPhotoData = e.target.result;
+      const frame = document.getElementById('photoCurrentFrame');
+      frame.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = selectedPhotoData;
+      img.alt = '選択した写真';
+      frame.appendChild(img);
+      document.getElementById('btnSavePhoto').disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function saveProfilePhoto() {
+    if (!selectedPhotoData) return;
+    const btn = document.getElementById('btnSavePhoto');
+    btn.textContent = '保存中...';
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/save-profile-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: selectedPhotoData })
+      });
+      if (res.ok) {
+        toast('写真を保存しました ✓');
+        loadCurrentPhoto();
+      } else {
+        toast('保存に失敗しました', 'error');
+      }
+    } catch (_) {
+      toast('サーバーエラー', 'error');
+    }
+    btn.textContent = 'この写真を保存';
+    btn.disabled = false;
+  }
+
+  // ===== Badges (dynamic) =====
+  var badgesLocal = [];
+
+  async function loadBadges() {
+    try {
+      const res = await fetch('/api/badges');
+      if (res.ok) badgesLocal = await res.json();
+    } catch (_) {}
+    renderBadgesList();
+  }
+
+  function renderBadgesList() {
+    const list = document.getElementById('badgesList');
+    if (!list) return;
+    list.innerHTML = '';
+    badgesLocal.forEach(function (b, i) {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px';
+      const inp = document.createElement('input');
+      inp.className = 'f-input';
+      inp.value = b.label || '';
+      inp.dataset.badgeIdx = i;
+      inp.style.flex = '1';
+      const del = document.createElement('button');
+      del.className = 'btn btn-danger btn-sm';
+      del.textContent = '削除';
+      del.onclick = function () { deleteBadge(i); };
+      row.appendChild(inp);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+
+  function addBadge() {
+    badgesLocal.push({ label: '' });
+    renderBadgesList();
+    const inputs = document.querySelectorAll('[data-badge-idx]');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }
+
+  function deleteBadge(i) {
+    badgesLocal.splice(i, 1);
+    renderBadgesList();
+  }
+
+  async function saveBadges() {
+    const inputs = document.querySelectorAll('[data-badge-idx]');
+    badgesLocal = Array.from(inputs).map(el => ({ label: el.value }));
+    try {
+      const res = await fetch('/api/badges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(badgesLocal)
+      });
+      if (res.ok) toast('資格を保存しました ✓');
+      else toast('保存に失敗しました', 'error');
+    } catch (_) { toast('サーバーに接続できません', 'error'); }
+  }
+
+  // ===== Logo upload =====
+  let selectedLogoData = null;
+  let hasRembg = false;
+
+  fetch('/api/ping').then(r => r.json()).then(d => {
+    hasRembg = !!d.has_rembg;
+    if (!hasRembg) document.getElementById('logoRembgNote').style.display = 'block';
+  }).catch(() => {});
+
+  async function loadCurrentLogo() {
+    try {
+      const res = await fetch('/images/logo.png', { method: 'HEAD' });
+      if (res.ok) {
+        const img = document.createElement('img');
+        img.src = '/images/logo.png?' + Date.now();
+        img.alt = 'ロゴ';
+        img.style.cssText = 'max-width:100%;max-height:72px;object-fit:contain;padding:8px';
+        const frame = document.getElementById('logoCurrentFrame');
+        frame.innerHTML = '';
+        frame.appendChild(img);
+      }
+    } catch (_) {}
+  }
+  loadCurrentLogo();
+
+  const logoDropZone = document.getElementById('logoDropZone');
+  const logoFile = document.getElementById('logoFile');
+  if (logoDropZone && logoFile) {
+    logoDropZone.addEventListener('click', () => logoFile.click());
+    logoDropZone.addEventListener('dragover', e => { e.preventDefault(); logoDropZone.classList.add('drag-over'); });
+    logoDropZone.addEventListener('dragleave', () => logoDropZone.classList.remove('drag-over'));
+    logoDropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      logoDropZone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) loadLogoFile(e.dataTransfer.files[0]);
+    });
+    logoFile.addEventListener('change', function () {
+      if (this.files[0]) loadLogoFile(this.files[0]);
+    });
+  }
+
+  function loadLogoFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      selectedLogoData = e.target.result;
+      const frame = document.getElementById('logoCurrentFrame');
+      frame.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = selectedLogoData;
+      img.alt = '選択したロゴ';
+      img.style.cssText = 'max-width:100%;max-height:72px;object-fit:contain;padding:8px';
+      frame.appendChild(img);
+      document.getElementById('btnSaveLogo').disabled = false;
+      document.getElementById('btnLogoRembg').disabled = !hasRembg;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function removeBgLogo() {
+    if (!selectedLogoData) return;
+    const btn = document.getElementById('btnLogoRembg');
+    const proc = document.getElementById('logoProcessing');
+    btn.disabled = true;
+    proc.style.display = 'block';
+    try {
+      const res = await fetch('/api/remove-bg-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: selectedLogoData })
+      });
+      const d = await res.json();
+      if (res.ok && d.result) {
+        selectedLogoData = d.result;
+        const rFrame = document.getElementById('logoRembgFrame');
+        rFrame.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = d.result;
+        img.style.cssText = 'max-width:100%;max-height:72px;object-fit:contain;padding:8px';
+        rFrame.appendChild(img);
+        const cFrame = document.getElementById('logoCurrentFrame');
+        cFrame.innerHTML = '';
+        const img2 = document.createElement('img');
+        img2.src = d.result;
+        img2.style.cssText = 'max-width:100%;max-height:72px;object-fit:contain;padding:8px';
+        cFrame.appendChild(img2);
+        toast('背景を削除しました ✓');
+      } else {
+        toast(d.error || '背景削除に失敗しました', 'error');
+        btn.disabled = false;
+      }
+    } catch (_) {
+      toast('サーバーエラー', 'error');
+      btn.disabled = false;
+    }
+    proc.style.display = 'none';
+  }
+
+  async function saveLogoImage() {
+    if (!selectedLogoData) return;
+    const btn = document.getElementById('btnSaveLogo');
+    btn.textContent = '保存中...';
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/save-logo-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: selectedLogoData })
+      });
+      if (res.ok) {
+        toast('ロゴを保存しました ✓');
+        loadCurrentLogo();
+      } else {
+        toast('保存に失敗しました', 'error');
+      }
+    } catch (_) {
+      toast('サーバーエラー', 'error');
+    }
+    btn.textContent = 'このロゴを保存';
+    btn.disabled = false;
+  }
+
+  // ===== Init =====
+  loadContent();
+  loadServices();
+  loadStrengths();
+  loadBadges();
+</script>
+</body>
+</html>
