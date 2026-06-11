@@ -265,14 +265,28 @@
   // ===== Badges リスト =====
   var badgeList = document.getElementById('badgeList');
   if (badgeList) {
+    var DEFAULT_BADGE_ITEMS = [
+      {label: '技術士（電気電子部門）'},
+      {label: '経営コンサルタント'},
+      {label: '組織開発ファシリテーター'},
+      {label: 'MBA(グロービス経営大学院)'}
+    ];
+    // まずlocalStorageのカスタムデータがあれば即時表示
     var cachedBdg = localStorage.getItem('kanata_badges');
     if (cachedBdg) {
-      try { renderBadgeList(JSON.parse(cachedBdg)); } catch(_){}
+      try { renderBadgeList(JSON.parse(cachedBdg)); } catch(_){ renderBadgeList(DEFAULT_BADGE_ITEMS); }
+    } else {
+      // キャッシュなしならデフォルトで先行表示
+      renderBadgeList(DEFAULT_BADGE_ITEMS);
     }
-    fetch('/badges.json?_=' + Date.now())
-      .then(function(r){ return r.json(); })
-      .then(function(items){ renderBadgeList(items); })
-      .catch(function(){});
+    // badges.jsonで常に上書き（管理画面で更新された場合はlocalStorageが優先されるためここでは上書きしない）
+    // ただしlocalStorageがない場合はJSONから取得
+    if (!cachedBdg) {
+      fetch('/badges.json?_=' + Date.now())
+        .then(function(r){ if (!r.ok) throw new Error('not ok'); return r.json(); })
+        .then(function(items){ renderBadgeList(items); })
+        .catch(function(){}); // デフォルト表示のまま
+    }
   }
 
   // ===== data-editable をlocalStorageから反映 =====
