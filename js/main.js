@@ -212,46 +212,43 @@
     testImg.src = '/images/profile.png?' + Date.now();
   }
 
-  // ===== Contact form =====
-  var contactForm    = document.getElementById('contactForm');
-  var formSuccess    = document.getElementById('formSuccess');
+ // ===== Contact form =====
+var contactForm = document.getElementById('contactForm');
+var formSuccess = document.getElementById('formSuccess');
 
-  if (contactForm && formSuccess) {
-    contactForm.addEventListener('submit', async function (e) {
-      e.preventDefault();
+if (contactForm && formSuccess) {
+  contactForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
 
-      var btnText    = contactForm.querySelector('.btn-text');
-      var btnLoading = contactForm.querySelector('.btn-loading');
-      btnText.style.display    = 'none';
-      btnLoading.style.display = 'inline';
+    var btnText = contactForm.querySelector('.btn-text');
+    var btnLoading = contactForm.querySelector('.btn-loading');
 
-      var data = {};
-      new FormData(contactForm).forEach(function (v, k) { data[k] = v; });
+    if (btnText) btnText.style.display = 'none';
+    if (btnLoading) btnLoading.style.display = 'inline';
 
-      try {
-        var res = await fetch('/api/contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
+    var formData = new FormData(contactForm);
 
-        if (res.ok) {
-          contactForm.style.display = 'none';
-          formSuccess.style.display = 'block';
-        } else {
-          var json = {};
-          try { json = await res.json(); } catch (_) {}
-          alert(json.error || '送信に失敗しました。直接メールにてご連絡ください。');
-          btnText.style.display    = 'inline';
-          btnLoading.style.display = 'none';
-        }
-      } catch (err) {
-        // サーバー未起動時でもUIは成功表示（デモ用フォールバック）
-        console.warn('Contact API not available:', err);
+    try {
+      var res = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(formData).toString()
+      });
+
+      if (res.ok) {
         contactForm.style.display = 'none';
         formSuccess.style.display = 'block';
+      } else {
+        alert('送信に失敗しました。直接メールにてご連絡ください。');
+        if (btnText) btnText.style.display = 'inline';
+        if (btnLoading) btnLoading.style.display = 'none';
       }
-    });
-  }
+    } catch (err) {
+      alert('送信に失敗しました。直接メールにてご連絡ください。');
+      if (btnText) btnText.style.display = 'inline';
+      if (btnLoading) btnLoading.style.display = 'none';
+    }
+  });
+}
 
 })();
