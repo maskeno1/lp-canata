@@ -7,15 +7,9 @@
   <!-- 認証確認前はページを非表示にしてフラッシュを防ぐ -->
   <style id="authHideStyle">body { visibility: hidden !important; }</style>
   <script>
-    // SHA-256（セッション検証用）
-    async function sha256(text) {
-      const buf = await crypto.subtle.digest('SHA-256',
-        new TextEncoder().encode(text));
-      return Array.from(new Uint8Array(buf))
-        .map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    // admin-login.html と同じハッシュ値（パスワード変更時は両方更新）
+    const ADMIN_HASH = '6571266025bb051b058893e23058f63a8061d05784363ee95d388a3d757d3487';
 
-    // セッション有効期限: 7日
     function isSessionValid() {
       const ts = parseInt(localStorage.getItem('admin_auth_ts') || '0', 10);
       return Date.now() - ts < 7 * 24 * 60 * 60 * 1000;
@@ -28,28 +22,18 @@
         if (s) s.remove();
       };
 
-      // ① 管理サーバー経由（Cookie認証）を優先チェック
+      // 管理サーバー経由（Cookie認証）を優先チェック
       try {
         const res = await fetch('/api/contacts', { method: 'GET' });
         if (res.status === 200) { show(); return; }
         if (res.status === 401) { redirect(); return; }
-        // 404 = 管理サーバーなし → ② へ
-      } catch (_) {
-        // ネットワークエラーも ② へ
-      }
+        // 404 = 管理サーバーなし → localStorageで確認
+      } catch (_) {}
 
-      // ② Netlify静的配信 → localStorage セッション + config.json ハッシュ検証
+      // Netlify静的配信: localStorageセッション + 埋め込みハッシュ照合
       const storedHash = localStorage.getItem('admin_auth');
       if (!storedHash || !isSessionValid()) { redirect(); return; }
-
-      try {
-        const cfgRes = await fetch('/config.json?_=' + Date.now());
-        if (!cfgRes.ok) { redirect(); return; }
-        const cfg = await cfgRes.json();
-        const expected = cfg.admin_password_hash
-          || await sha256(cfg.admin_password || '');
-        if (storedHash === expected) { show(); return; }
-      } catch (_) {}
+      if (storedHash === ADMIN_HASH) { show(); return; }
       redirect();
     })();
   </script>
