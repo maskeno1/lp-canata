@@ -10,14 +10,16 @@
     (async function earlyAuthGuard() {
       try {
         const res = await fetch('/api/contacts', { method: 'GET' });
-        if (res.status === 401) {
+        if (res.status === 200) {
+          // 認証OK → ページを表示
+          const s = document.getElementById('authHideStyle');
+          if (s) s.remove();
+        } else {
+          // 401・404・その他すべてログイン画面へ
           window.location.replace('/admin-login.html');
-          return;
         }
-        // 認証OK → ページを表示
-        const s = document.getElementById('authHideStyle');
-        if (s) s.remove();
       } catch (_) {
+        // ネットワークエラー等もログイン画面へ
         window.location.replace('/admin-login.html');
       }
     })();
@@ -675,11 +677,12 @@
   (async function authGuard() {
     try {
       const res = await fetch('/api/contacts', { method: 'GET' });
-      if (res.status === 401) {
+      if (res.status !== 200) {
+        // 401・404・その他すべてログイン画面へ
         window.location.replace('/admin-login.html');
       }
     } catch (_) {
-      // 管理サーバーが起動していない場合もログイン画面へ
+      // ネットワークエラー等もログイン画面へ
       window.location.replace('/admin-login.html');
     }
   })();
