@@ -4,6 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理画面 - 株式会社かなた</title>
+  <!-- 認証確認前はページを非表示にしてフラッシュを防ぐ -->
+  <style id="authHideStyle">body { visibility: hidden !important; }</style>
+  <script>
+    (async function earlyAuthGuard() {
+      try {
+        const res = await fetch('/api/contacts', { method: 'GET' });
+        if (res.status === 401) {
+          window.location.replace('/admin-login.html');
+          return;
+        }
+        // 認証OK → ページを表示
+        const s = document.getElementById('authHideStyle');
+        if (s) s.remove();
+      } catch (_) {
+        window.location.replace('/admin-login.html');
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -653,6 +671,19 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // ===== Auth guard: 未認証なら即ログイン画面へ =====
+  (async function authGuard() {
+    try {
+      const res = await fetch('/api/contacts', { method: 'GET' });
+      if (res.status === 401) {
+        window.location.replace('/admin-login.html');
+      }
+    } catch (_) {
+      // 管理サーバーが起動していない場合もログイン画面へ
+      window.location.replace('/admin-login.html');
+    }
+  })();
+
   // ===== Tab switching =====
   document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
     btn.addEventListener('click', function () {
