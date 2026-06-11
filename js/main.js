@@ -198,6 +198,97 @@
     });
   });
 
+  function escHtml(s) {
+    return String(s || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderServicesGrid(items) {
+    if (!servicesGrid) return;
+    servicesGrid.innerHTML = items.map(function(s, i){
+      return '<div class="service-card fade-up">'
+        + '<div class="service-card__num">0' + (i+1) + '</div>'
+        + '<h3 class="service-card__title">' + escHtml(s.title) + '</h3>'
+        + '<p class="service-card__text">' + escHtml(s.text) + '</p>'
+        + '</div>';
+    }).join('');
+    servicesGrid.querySelectorAll('.fade-up').forEach(function(el){ fadeObserver.observe(el); });
+  }
+
+  function renderStrengthsGrid(items) {
+    if (!strengthsGrid) return;
+    strengthsGrid.innerHTML = items.map(function(s, i){
+      return '<div class="strength-item fade-up">'
+        + '<div class="strength-item__num">0' + (i+1) + '</div>'
+        + '<h3 class="strength-item__title">' + escHtml(s.title) + '</h3>'
+        + '<p class="strength-item__text">' + escHtml(s.text) + '</p>'
+        + '</div>';
+    }).join('');
+    strengthsGrid.querySelectorAll('.fade-up').forEach(function(el){ fadeObserver.observe(el); });
+  }
+
+  function renderBadgeList(items) {
+    if (!badgeList) return;
+    badgeList.innerHTML = items.map(function(b){
+      return '<span class="profile__badge">' + escHtml(b.label) + '</span>';
+    }).join('');
+  }
+
+  // ===== Services グリッド =====
+  var servicesGrid = document.getElementById('servicesGrid');
+  if (servicesGrid) {
+    // localStorageに保存済みがあれば優先、なければJSONファイルから取得
+    var cachedSvc = localStorage.getItem('kanata_services');
+    if (cachedSvc) {
+      try { renderServicesGrid(JSON.parse(cachedSvc)); } catch(_){}
+    }
+    fetch('/services.json?_=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(items){ renderServicesGrid(items); })
+      .catch(function(){});
+  }
+
+  // ===== Strengths グリッド =====
+  var strengthsGrid = document.getElementById('strengthsGrid');
+  if (strengthsGrid) {
+    var cachedStr = localStorage.getItem('kanata_strengths');
+    if (cachedStr) {
+      try { renderStrengthsGrid(JSON.parse(cachedStr)); } catch(_){}
+    }
+    fetch('/strengths.json?_=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(items){ renderStrengthsGrid(items); })
+      .catch(function(){});
+  }
+
+  // ===== Badges リスト =====
+  var badgeList = document.getElementById('badgeList');
+  if (badgeList) {
+    var cachedBdg = localStorage.getItem('kanata_badges');
+    if (cachedBdg) {
+      try { renderBadgeList(JSON.parse(cachedBdg)); } catch(_){}
+    }
+    fetch('/badges.json?_=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(items){ renderBadgeList(items); })
+      .catch(function(){});
+  }
+
+  // ===== data-editable をlocalStorageから反映 =====
+  (function applyEditableOverrides(){
+    var stored = localStorage.getItem('kanata_editable');
+    if (!stored) return;
+    try {
+      var data = JSON.parse(stored);
+      Object.keys(data).forEach(function(key){
+        document.querySelectorAll('[data-editable="' + key + '"]').forEach(function(el){
+          el.innerHTML = data[key];
+        });
+      });
+    } catch(_){}
+  })();
+
   // ===== Profile photo =====
   var profileFrame = document.getElementById('profilePhotoFrame');
   if (profileFrame) {
