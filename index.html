@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="株式会社かなた｜経営者に寄り添うコーチング型の経営・人事コンサルティング。組織課題の解決を柴田朋浩が直接サポートします。">
+  <title>株式会社かなた</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ナビゲーション -->
+<nav class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" href="#hero">
+      <img id="navLogoImg" class="nav__logo-img" src="/images/logo.png" alt="株式会社かなた" style="display:none">
+      <svg id="navLogoSvg" class="nav__logo-icon" width="30" height="30" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M7 16 Q12 9 16 16 Q20 23 25 16" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <circle cx="16" cy="16" r="2.5" fill="currentColor"/>
+      </svg>
+      <span class="nav__logo-text">株式会社かなた</span>
+    </a>
+    <button class="nav__hamburger" id="hamburger" aria-label="メニューを開く">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav__links" id="navLinks">
+      <li><a href="#about" class="nav__link">かなたについて</a></li>
+      <li><a href="#services" class="nav__link">事業内容</a></li>
+      <li><a href="#strengths" class="nav__link">選ばれる理由</a></li>
+      <li><a href="#profile" class="nav__link">代表紹介</a></li>
+      <li><a href="#contact" class="nav__link nav__link--cta">お問い合わせ</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ヒーロー -->
+<section class="hero" id="hero">
+  <canvas class="hero__canvas" id="windCanvas"></canvas>
+  <div class="hero__glow"></div>
+  <div class="hero__content">
+    <p class="hero__eyebrow" data-wind-in data-delay="200" data-editable="hero-eyebrow">経営者と共に、組織の課題をともに解決する</p>
+    <h1 class="hero__title">
+      <span class="hero__line" data-wind-in data-delay="400" data-editable="hero-line1">あなたと動けば</span>
+      <span class="hero__line hero__line--accent" data-wind-in data-delay="600" data-editable="hero-line2">組織は変わる。</span>
+    </h1>
+    <p class="hero__sub" data-wind-in data-delay="800" data-editable="hero-sub">経営コーチング / 組織改革 / 人事制度設計</p>
+    <div class="hero__btns" data-wind-in data-delay="1000">
+      <a href="#contact" class="btn btn--primary">無料相談はこちら</a>
+      <a href="#about" class="btn btn--ghost">かなたについて</a>
+    </div>
+  </div>
+  <div class="hero__scroll-hint">
+    <span class="hero__scroll-text">SCROLL</span>
+    <div class="hero__scroll-bar"></div>
+  </div>
+</section>
+
+<!-- かなたについて -->
+<section class="about section" id="about">
+  <div class="container">
+    <div class="section-header fade-up">
+      <span class="section-en">ABOUT</span>
+      <h2 class="section-title">かなたについて</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="about__body">
+      <div class="about__message fade-up">
+        <h3 class="about__catch" data-editable="about-catch">経営者の「孤独」をともに超える</p>
+        <p class="about__text" data-editable="about-text2"><br>代表の柴田朋浩は技術士として大手企業で多くのプロジェクトをリードする中で、「組織の成否を分けるのは技術ではなく、人と組織の力だ」という確信を持ち、株式会社かなたを設立。コーチングの手法を活かした独自のスタイルで、経営者が本当に解決したい課題に向き合います。</p>
+        <p class="about__text" data-editable="about-text3"><br>答えを押しつけるのではなく、対話を通じて経営者自身が気づき、動き出す。それがかなたのスタイルです。<br></p>
+      </div>
+      <div class="about__info fade-up">
+        <h3 class="about__info-title">会社概要</h3>
+        <table class="about__table">
+          <tbody>
+            <tr>
+              <th>会社名</th>
+              <td data-editable="company-name">株式会社かなた</td>
+            </tr>
+            <tr>
+              <th>代表取締役</th>
+              <td data-editable="company-ceo">柴田 朋浩</td>
+            </tr>
+            <tr>
+              <th>設立</th>
+              <td data-editable="company-founded">2025年12月19日</td>
+            </tr>
+            <tr>
+              <th>所在地</th>
+              <td data-editable="company-address">〒 501-6011　岐阜県羽島郡岐南町八剣北1-7-1</td>
+            </tr>
+            <tr>
+              <th>電話</th>
+              <td data-editable="company-tel">090-1789-9590</td>
+            </tr>
+            <tr>
+              <th>事業内容</th>
+              <td data-editable="company-business">経営コンサルティング・組織改革支援・人事制度設計</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 事業内容 -->
+<section class="services section section--pale" id="services">
+  <div class="container">
+    <div class="section-header fade-up">
+      <span class="section-en">SERVICES</span>
+      <h2 class="section-title">事業内容</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="services__grid" id="servicesGrid"></div>
+  </div>
+</section>
+
+<!-- 選ばれる理由 -->
+<section class="strengths section" id="strengths">
+  <div class="container">
+    <div class="section-header fade-up">
+      <span class="section-en">WHY KANATA</span>
+      <h2 class="section-title">選ばれる理由</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="strengths__grid" id="strengthsGrid"></div>
+  </div>
+</section>
+
+<!-- 代表紹介 -->
+<section class="profile section section--pale" id="profile">
+  <div class="container">
+    <div class="section-header fade-up">
+      <span class="section-en">PRESIDENT</span>
+      <h2 class="section-title">代表紹介</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="profile__body">
+      <div class="profile__left fade-up">
+        <div class="profile__photo-frame" id="profilePhotoFrame">
+          <div class="profile__photo-placeholder">
+            <svg width="72" height="72" viewBox="0 0 80 80" fill="none">
+              <circle cx="40" cy="30" r="18" stroke="currentColor" stroke-width="2"/>
+              <path d="M10 72 Q10 52 40 52 Q70 52 70 72" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+        </div>
+        <div class="profile__name-block">
+          <p class="profile__role" data-editable="profile-role">代表取締役</p>
+          <h3 class="profile__name" data-editable="profile-name">柴田 朋浩</p>
+        </div>
+        <div class="profile__badge-list" id="badgeList"></div>
+      </div>
+      <div class="profile__right fade-up">
+        <div class="profile__quote">"</div>
+        <p class="profile__message" data-editable="profile-message1">大手電気工事会社で技術士として多くのプロジェクトをリードする中で、気づいたことがありました。プロジェクトの成否を分けるのは、技術力よりも人・組織の力だということです。優れた仕組みがあっても、組織の方向性が揃わなければ、成果は出ません。</p>
+        <p class="profile__message" data-editable="profile-message2">その確信をもとに、経営者に直接寄り添い、組織の課題をともに解決する仕事を選びました。技術士として培った論理的思考とコーチングを掛け合わせた独自のアプローチで、あなたの組織を次のステージへと導きます。</p>
+        <p class="profile__sign" data-editable="profile-sign">柴田 朋浩</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- お問い合わせ -->
+<section class="contact section" id="contact">
+  <div class="container">
+    <div class="section-header fade-up">
+      <span class="section-en">CONTACT</span>
+      <h2 class="section-title">お問い合わせ</h2>
+      <div class="section-line"></div>
+      <p class="section-desc" data-editable="contact-desc">お気軽にご相談ください。通常2営業日以内にご返信いたします。</p>
+    </div>
+    <div class="contact__body">
+      <div class="contact__form-wrap fade-up">
+        <form class="contact-form" id="contactForm">
+          <div class="form-group">
+            <label class="form-label" for="name">お名前 <span class="form-req">必須</span></label>
+            <input class="form-input" type="text" id="name" name="name" placeholder="山田 太郎" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="company">会社名・組織名</label>
+            <input class="form-input" type="text" id="company" name="company" placeholder="株式会社○○">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="email">メールアドレス <span class="form-req">必須</span></label>
+              <input class="form-input" type="email" id="email" name="email" placeholder="example@email.com" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="tel">電話番号</label>
+              <input class="form-input" type="tel" id="tel" name="tel" placeholder="000-0000-0000">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="subject">お問い合わせ内容 <span class="form-req">必須</span></label>
+            <select class="form-select" id="subject" name="subject" required>
+              <option value="">お問い合わせ内容を選択してください</option>
+              <option value="経営コーチングについて">経営コーチングについて</option>
+              <option value="組織診断・改善について">組織診断・改善について</option>
+              <option value="人事制度設計について">人事制度設計について</option>
+              <option value="幹部育成・研修について">幹部育成・研修について</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="message">メッセージ <span class="form-req">必須</span></label>
+            <textarea class="form-textarea" id="message" name="message" rows="6" placeholder="お問い合わせ内容を詳しくお書きください" required></textarea>
+          </div>
+          <div class="form-group form-group--check">
+            <label class="form-check">
+              <input type="checkbox" name="privacy" required>
+              <span class="form-check__box"></span>
+              <span>個人情報の取り扱いに同意する</span>
+            </label>
+          </div>
+          <button type="submit" class="btn btn--primary btn--full">
+            <span class="btn-text">送信する</span>
+            <span class="btn-loading" style="display:none">送信中...</span>
+          </button>
+        </form>
+        <div class="form-success" id="formSuccess" style="display:none">
+          <div class="form-success__icon">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <circle cx="28" cy="28" r="26" stroke="var(--green)" stroke-width="2"/>
+              <path d="M16 28 L24 36 L40 20" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>送信完了しました</h3>
+          <p>お問い合わせありがとうございます。<br>通常2営業日以内にご返信いたします。</p>
+        </div>
+      </div>
+      <div class="contact__info fade-up">
+        <div class="contact__info-item">
+          <div class="contact__info-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M2 8 L12 14 L22 8" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+          </div>
+          <div>
+            <p class="contact__info-label">メール</p>
+            <p class="contact__info-val" data-editable="contact-email">shibata@canata-consult.jp</p>
+          </div>
+        </div>
+        <div class="contact__info-item">
+          <div class="contact__info-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M5 4 L9 4 L11 9 L8.5 10.5 C10 14 14 18 17.5 19.5 L19 17 L24 19 L24 23 C18 25 2 16 5 4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <p class="contact__info-label">電話</p>
+            <p class="contact__info-val" data-editable="contact-tel">090-1789-9590</p>
+          </div>
+        </div>
+        <div class="contact__info-item">
+          <div class="contact__info-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="10" r="4" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 2 C7.6 2 4 5.6 4 10 C4 16 12 22 12 22 C12 22 20 16 20 10 C20 5.6 16.4 2 12 2Z" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+          </div>
+          <div>
+            <p class="contact__info-label">所在地</p>
+            <p class="contact__info-val" data-editable="contact-address">〒 501-6011　岐阜県羽島郡岐南町八剣北1-7-1</p>
+          </div>
+        </div>
+        <div class="contact__hours">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M12 7 L12 12 L16 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <p class="contact__info-label">受付時間</p>
+            <p class="contact__info-val" data-editable="contact-hours">平日 9:00〜18:00</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- フッター -->
+<footer class="footer">
+  <div class="footer__inner container">
+    <div class="footer__brand">
+      <div class="footer__logo">
+        <img id="footerLogoImg" src="/images/logo.png" alt="株式会社かなた" style="display:none">
+        <svg id="footerLogoSvg" width="26" height="26" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="13" stroke="var(--green-light)" stroke-width="1.8"/>
+          <path d="M7 16 Q12 9 16 16 Q20 23 25 16" stroke="var(--green-light)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <circle cx="16" cy="16" r="2.5" fill="var(--green-light)"/>
+        </svg>
+        <span class="footer__name" data-editable="footer-name">株式会社かなた</span>
+      </div>
+      <p class="footer__desc" data-editable="footer-desc">経営者に寄り添う経営・人事コンサルティング</p>
+    </div>
+    <nav class="footer__nav">
+      <a href="#about">かなたについて</a>
+      <a href="#services">事業内容</a>
+      <a href="#strengths">選ばれる理由</a>
+      <a href="#profile">代表紹介</a>
+      <a href="#contact">お問い合わせ</a>
+    </nav>
+  </div>
+  <div class="footer__bottom">
+    <div class="container">
+      <p>&copy; 2024 株式会社かなた. All rights reserved. <a href="/admin-login.html" style="color:rgba(255,255,255,.15);font-size:11px;margin-left:12px">管理</a></p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+(function () {
+  var DEFAULT_BADGES = [
+    {label: '技術士（電気電子部門）'},
+    {label: '経営・人事コンサルタント'}
+  ];
+  function renderBadges(badges) {
+    var list = document.getElementById('badgeList');
+    if (!list) return;
+    list.innerHTML = '';
+    badges.forEach(function (b) {
+      var span = document.createElement('span');
+      span.className = 'profile__badge';
+      span.textContent = b.label || '';
+      list.appendChild(span);
+    });
+  }
+  fetch('/api/badges').then(function (r) { return r.json(); }).then(renderBadges).catch(function () { renderBadges(DEFAULT_BADGES); });
+})();
+
+(function () {
+  var navImg  = document.getElementById('navLogoImg');
+  var navSvg  = document.getElementById('navLogoSvg');
+  var ftImg   = document.getElementById('footerLogoImg');
+  var ftSvg   = document.getElementById('footerLogoSvg');
+  function applyLogo(img, svg) {
+    img.onload  = function () { img.style.display = ''; if (svg) svg.style.display = 'none'; };
+    img.onerror = function () { img.style.display = 'none'; if (svg) svg.style.display = ''; };
+  }
+  if (navImg)  applyLogo(navImg,  navSvg);
+  if (ftImg)   applyLogo(ftImg,   ftSvg);
+})();
+</script>
+<script>
+(function () {
+  // キーワード→アイコン対応表
+  var ICON_MAP = [
+    {
+      keys: ['コーチング','対話','傾聴','ファシリ','経営者','リーダー','幹部'],
+      svg: '<svg width="44" height="44" viewBox="0 0 48 48" fill="none"><circle cx="22" cy="14" r="7" stroke="currentColor" stroke-width="2"/><path d="M8 40 C8 31 13 27 22 27 C31 27 36 31 36 40" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M32 18 L36 14 M36 14 L40 10 M36 14 L40 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    },
+    {
+      keys: ['組織','チーム','コミュニケーション','改善','診断','マネジメント','ネットワーク'],
+      svg: '<svg width="44" height="44" viewBox="0 0 48 48" fill="none"><circle cx="14" cy="18" r="6" stroke="currentColor" stroke-width="2"/><circle cx="34" cy="18" r="6" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="34" r="6" stroke="currentColor" stroke-width="2"/><path d="M19 22 L22 28 M29 22 L26 28" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 18 L28 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+    },
+    {
+      keys: ['人事','評価','制度','採用','給与','設計','報酬'],
+      svg: '<svg width="44" height="44" viewBox="0 0 48 48" fill="none"><rect x="8" y="8" width="32" height="32" rx="3" stroke="currentColor" stroke-width="2"/><path d="M16 20 L22 26 L32 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 32 L32 32" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+    },
+    {
+      keys: ['育成','研修','トレーニング','スキル','成長','教育'],
+      svg: '<svg width="44" height="44" viewBox="0 0 48 48" fill="none"><path d="M8 38 L8 30 M18 38 L18 24 M28 38 L28 16 M38 38 L38 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M26 14 L38 8 L40 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    },
+    {
+      keys: ['戦略','計画','ビジョン','ブランド','マーケ'],
+      svg: '<svg width="44" height="44" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="24" r="8" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="24" r="3" fill="currentColor"/><path d="M24 8 L24 12 M24 36 L24 40 M8 24 L12 24 M36 24 L40 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+    },
+    {
+      keys: ['財務','経理','会計','コスト','利益'],
+      svg: '<svg width="44" height="44" viewBox="0 0 48 48" fill="none"><rect x="6" y="10" width="36" height="28" rx="3" stroke="currentColor" stroke-width="2"/><path d="M6 18 L42 18" stroke="currentColor" stroke-width="1.8"/><path d="M14 26 L20 26 M26 26 L34 26 M14 32 L22 32" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="32" cy="32" r="4" stroke="currentColor" stroke-width="1.8"/></svg>'
+    }
+  ];
+  var DEFAULT_ICON = '<svg width="44" height="44" viewBox="0 0 48 48" fill="none"><path d="M24 6 L42 24 L24 42 L6 24 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M24 16 L32 24 L24 32 L16 24 Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+
+  function getIcon(title) {
+    for (var i = 0; i < ICON_MAP.length; i++) {
+      for (var j = 0; j < ICON_MAP[i].keys.length; j++) {
+        if (title.indexOf(ICON_MAP[i].keys[j]) !== -1) return ICON_MAP[i].svg;
+      }
+    }
+    return DEFAULT_ICON;
+  }
+
+  var DEFAULT = [
+    {title: '経営コーチング'}, {title: '組織診断・改善'}, {title: '人事制度設計'}
+  ];
+  function h(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function render(services) {
+    var grid = document.getElementById('servicesGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var delay = parseInt(e.target.dataset.delay || 0, 10);
+        setTimeout(function () { e.target.classList.add('visible'); }, delay);
+        obs.unobserve(e.target);
+      });
+    }, { threshold: 0.1 });
+    services.forEach(function (s, i) {
+      var card = document.createElement('div');
+      card.className = 'service-card fade-up';
+      card.dataset.delay = String(i * 100);
+      card.innerHTML =
+        '<div class="service-card__num">' + String(i + 1).padStart(2, '0') + '</div>' +
+        '<div class="service-card__icon">' + getIcon(s.title) + '</div>' +
+        '<h3 class="service-card__title">' + h(s.title) + '</h3>' +
+        (s.text ? '<p class="service-card__text">' + h(s.text) + '</p>' : '');
+      grid.appendChild(card);
+      obs.observe(card);
+    });
+  }
+  fetch('/api/services').then(function (r) { return r.json(); }).then(render).catch(function () { render(DEFAULT); });
+})();
+
+(function () {
+  var DEFAULT = [
+    {title: '論理的アプローチ×コーチング'},
+    {title: '経営者との対話を最優先に'},
+    {title: '現場を知る実践知'},
+  ];
+  function h(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function render(items) {
+    var grid = document.getElementById('strengthsGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var delay = parseInt(e.target.dataset.delay || 0, 10);
+        setTimeout(function () { e.target.classList.add('visible'); }, delay);
+        obs.unobserve(e.target);
+      });
+    }, { threshold: 0.1 });
+    items.forEach(function (s, i) {
+      var item = document.createElement('div');
+      item.className = 'strength-item fade-up';
+      item.dataset.delay = String(i * 150);
+      item.innerHTML =
+        '<div class="strength-item__num">' + String(i + 1).padStart(2, '0') + '</div>' +
+        '<h3 class="strength-item__title">' + h(s.title) + '</h3>' +
+        (s.text ? '<p class="strength-item__text">' + h(s.text) + '</p>' : '');
+      grid.appendChild(item);
+      obs.observe(item);
+    });
+  }
+  fetch('/api/strengths').then(function (r) { return r.json(); }).then(render).catch(function () { render(DEFAULT); });
+})();
+</script>
+</body>
+</html>
