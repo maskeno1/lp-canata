@@ -7,21 +7,50 @@
   <!-- 認証確認前はページを非表示にしてフラッシュを防ぐ -->
   <style id="authHideStyle">body { visibility: hidden !important; }</style>
   <script>
+    // SHA-256（セッション検証用）
+    async function sha256(text) {
+      const buf = await crypto.subtle.digest('SHA-256',
+        new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // セッション有効期限: 7日
+    function isSessionValid() {
+      const ts = parseInt(localStorage.getItem('admin_auth_ts') || '0', 10);
+      return Date.now() - ts < 7 * 24 * 60 * 60 * 1000;
+    }
+
     (async function earlyAuthGuard() {
+      const redirect = () => window.location.replace('/admin-login.html');
+      const show     = () => {
+        const s = document.getElementById('authHideStyle');
+        if (s) s.remove();
+      };
+
+      // ① 管理サーバー経由（Cookie認証）を優先チェック
       try {
         const res = await fetch('/api/contacts', { method: 'GET' });
-        if (res.status === 200) {
-          // 認証OK → ページを表示
-          const s = document.getElementById('authHideStyle');
-          if (s) s.remove();
-        } else {
-          // 401・404・その他すべてログイン画面へ
-          window.location.replace('/admin-login.html');
-        }
+        if (res.status === 200) { show(); return; }
+        if (res.status === 401) { redirect(); return; }
+        // 404 = 管理サーバーなし → ② へ
       } catch (_) {
-        // ネットワークエラー等もログイン画面へ
-        window.location.replace('/admin-login.html');
+        // ネットワークエラーも ② へ
       }
+
+      // ② Netlify静的配信 → localStorage セッション + config.json ハッシュ検証
+      const storedHash = localStorage.getItem('admin_auth');
+      if (!storedHash || !isSessionValid()) { redirect(); return; }
+
+      try {
+        const cfgRes = await fetch('/config.json?_=' + Date.now());
+        if (!cfgRes.ok) { redirect(); return; }
+        const cfg = await cfgRes.json();
+        const expected = cfg.admin_password_hash
+          || await sha256(cfg.admin_password || '');
+        if (storedHash === expected) { show(); return; }
+      } catch (_) {}
+      redirect();
     })();
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -673,19 +702,17 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ===== Auth guard: 未認証なら即ログイン画面へ =====
-  (async function authGuard() {
-    try {
-      const res = await fetch('/api/contacts', { method: 'GET' });
-      if (res.status !== 200) {
-        // 401・404・その他すべてログイン画面へ
-        window.location.replace('/admin-login.html');
-      }
-    } catch (_) {
-      // ネットワークエラー等もログイン画面へ
-      window.location.replace('/admin-login.html');
-    }
-  })();
+  // ===== ログアウト処理（localStorageも削除）=====
+  const logoutLink = document.querySelector('a[href="/api/logout"]');
+  if (logoutLink) {
+    logoutLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      localStorage.removeItem('admin_auth');
+      localStorage.removeItem('admin_auth_ts');
+      fetch('/api/logout').catch(() => {});
+      window.location.href = '/admin-login.html';
+    });
+  }
 
   // ===== Tab switching =====
   document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
