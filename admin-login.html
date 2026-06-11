@@ -162,6 +162,7 @@
 
       // ① 管理サーバー（/api/login）が使える場合はそちらを優先
       try {
+        // ① まず管理サーバー（/api/login）を試みる
         const res = await fetch('/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
