@@ -563,6 +563,7 @@
         <p style="font-size:12px;color:var(--tl);margin-top:10px;line-height:1.7">
           保存した写真は共有ストレージへアップロードされ、全訪問者のLPに反映されます。
         </p>
+        <p id="photoUploadStatus" style="font-size:12px;color:var(--tl);margin-top:6px;line-height:1.7"></p>
         <div class="btn-actions" style="margin-top:16px">
           <button class="btn btn-primary" id="btnSavePhoto" onclick="saveProfilePhoto()" disabled>この写真を保存</button>
         </div>
@@ -1077,6 +1078,15 @@
 
   // ===== Photo upload =====
   let selectedPhotoData = null;
+  let selectedPhotoBlob = null;
+  const profilePhotoApi = '/.netlify/functions/profile-photo';
+
+  function setPhotoStatus(message, isError) {
+    const status = document.getElementById('photoUploadStatus');
+    if (!status) return;
+    status.textContent = message || '';
+    status.style.color = isError ? '#dc2626' : 'var(--tl)';
+  }
 
   function showPhoto(dataUrl, alt) {
     const frame = document.getElementById('photoCurrentFrame');
@@ -1090,13 +1100,20 @@
 
   async function loadCurrentPhoto() {
     try {
-      const res = await fetch('/.netlify/functions/profile-photo', {
+      const res = await fetch(profilePhotoApi, {
         method: 'GET',
+        headers: { 'Accept': 'image/*, application/json' },
         cache: 'no-store'
       });
       if (res.ok) {
-        showPhoto('/.netlify/functions/profile-photo?_=' + Date.now());
+        showPhoto(profilePhotoApi + '?_=' + Date.now());
+        setPhotoStatus('公開中の写真を表示しています');
         return;
+      }
+      if (res.status === 404) {
+        setPhotoStatus('初回の写真をアップロードできます');
+      } else {
+        setPhotoStatus('写真保存機能を確認できませんでした（HTTP ' + res.status + '）', true);
       }
     } catch (_) {}
     showPhoto('/images/profile.png?' + Date.now());
@@ -1133,10 +1150,23 @@
         const canvas = document.createElement('canvas');
         canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
         canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        selectedPhotoData = canvas.toDataURL('image/jpeg', .86);
-        showPhoto(selectedPhotoData, '選択した写真');
-        document.getElementById('btnSavePhoto').disabled = false;
+        const context = canvas.getContext('2d');
+        if (!context) {
+          toast('画像を変換できませんでした', 'error');
+          return;
+        }
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function (blob) {
+          if (!blob) {
+            toast('画像を変換できませんでした', 'error');
+            return;
+          }
+          selectedPhotoBlob = blob;
+          selectedPhotoData = URL.createObjectURL(blob);
+          showPhoto(selectedPhotoData, '選択した写真');
+          setPhotoStatus('写真を選択しました。「この写真を保存」を押すと公開されます');
+          document.getElementById('btnSavePhoto').disabled = false;
+        }, 'image/jpeg', .86);
       };
       img.onerror = function () { toast('画像を読み込めませんでした', 'error'); };
       img.src = e.target.result;
@@ -1145,30 +1175,41 @@
   }
 
   async function saveProfilePhoto() {
-    if (!selectedPhotoData) return;
+    if (!selectedPhotoBlob) return;
     const btn = document.getElementById('btnSavePhoto');
     btn.textContent = '保存中...';
     btn.disabled = true;
+    setPhotoStatus('共有ストレージへアップロードしています...');
     try {
-      const res = await fetch('/.netlify/functions/profile-photo', {
+      const formData = new FormData();
+      formData.append('photo', selectedPhotoBlob, 'profile.jpg');
+      const res = await fetch(profilePhotoApi, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ image: selectedPhotoData })
+        headers: { 'Accept': 'application/json' },
+        body: formData
       });
       if (res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
         toast('写真を保存し、全訪問者のLPへ反映しました ✓');
+        if (selectedPhotoData) URL.revokeObjectURL(selectedPhotoData);
+        selectedPhotoData = null;
+        selectedPhotoBlob = null;
+        setPhotoStatus('写真を公開しました');
         loadCurrentPhoto();
         btn.textContent = 'この写真を保存';
         btn.disabled = false;
         return;
       }
-      const data = await res.json().catch(() => ({}));
-      toast(data.error || '写真を共有ストレージへ保存できませんでした', 'error');
-    } catch (_) {
-      toast('写真を共有ストレージへ保存できませんでした', 'error');
+      const contentType = res.headers.get('content-type') || '';
+      const data = contentType.includes('application/json')
+        ? await res.json().catch(() => ({}))
+        : {};
+      const message = data.error || '写真保存機能が利用できません（HTTP ' + res.status + '）';
+      setPhotoStatus(message, true);
+      toast(message, 'error');
+    } catch (error) {
+      const message = '写真保存機能に接続できません。Netlifyのデプロイ状態をご確認ください';
+      setPhotoStatus(message, true);
+      toast(message, 'error');
     }
     btn.textContent = 'この写真を保存';
     btn.disabled = false;

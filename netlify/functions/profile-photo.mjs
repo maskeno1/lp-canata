@@ -1,7 +1,7 @@
 import { getStore } from '@netlify/blobs';
 
-const store = getStore('site-images');
 const key = 'profile-photo';
+const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -11,40 +11,47 @@ function json(data, status = 200) {
 }
 
 export default async (request) => {
+  const store = getStore('site-images');
+
   if (request.method === 'GET') {
-    const entry = await store.getWithMetadata(key, {
-      consistency: 'strong',
-      type: 'arrayBuffer',
-    });
-    if (!entry) return new Response('Not found', { status: 404 });
-    return new Response(entry.data, {
-      headers: {
-        'Content-Type': entry.metadata?.contentType || 'image/jpeg',
-        'Cache-Control': 'public, max-age=300',
-      },
-    });
+    try {
+      const entry = await store.getWithMetadata(key, {
+        consistency: 'strong',
+        type: 'arrayBuffer',
+      });
+      if (!entry) return new Response('Not found', { status: 404 });
+      return new Response(entry.data, {
+        headers: {
+          'Content-Type': entry.metadata?.contentType || 'image/jpeg',
+          'Cache-Control': 'no-store',
+        },
+      });
+    } catch (error) {
+      console.error('Failed to load profile photo', error);
+      return json({ error: '共有ストレージから写真を読み込めませんでした' }, 500);
+    }
   }
 
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405);
   }
 
-  const origin = request.headers.get('origin');
-  if (origin && origin !== new URL(request.url).origin) {
-    return json({ error: '不正な送信元です' }, 403);
+  const form = await request.formData().catch(() => null);
+  const photo = form?.get('photo');
+  if (!photo || typeof photo === 'string' || !allowedTypes.has(photo.type)) {
+    return json({ error: 'JPG・PNG・WEBP形式の画像を選択してください' }, 400);
   }
-
-  const body = await request.json().catch(() => null);
-  const match = body?.image?.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
-  if (!match) return json({ error: '対応していない画像形式です' }, 400);
-
-  const bytes = Buffer.from(match[2], 'base64');
-  if (bytes.length > 3 * 1024 * 1024) {
+  if (photo.size > 3 * 1024 * 1024) {
     return json({ error: '画像サイズは3MB以下にしてください' }, 413);
   }
 
-  await store.set(key, bytes, {
-    metadata: { contentType: match[1] },
-  });
-  return json({ status: 'ok' });
+  try {
+    await store.set(key, photo, {
+      metadata: { contentType: photo.type },
+    });
+    return json({ status: 'ok' });
+  } catch (error) {
+    console.error('Failed to save profile photo', error);
+    return json({ error: '共有ストレージへの保存に失敗しました' }, 500);
+  }
 };
