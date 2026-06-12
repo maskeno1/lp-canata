@@ -1315,7 +1315,9 @@
 
   // ===== Logo upload =====
   let selectedLogoData = null;
+  let selectedLogoBlob = null;
   let hasRembg = false;
+  const siteLogoApi = '/.netlify/functions/site-logo';
 
   fetch('/api/ping').then(r => r.json()).then(d => {
     hasRembg = !!d.has_rembg;
@@ -1324,10 +1326,14 @@
 
   async function loadCurrentLogo() {
     try {
-      const res = await fetch('/images/logo.png', { method: 'HEAD' });
+      const res = await fetch(siteLogoApi, {
+        method: 'GET',
+        headers: { 'Accept': 'image/*, application/json' },
+        cache: 'no-store'
+      });
       if (res.ok) {
         const img = document.createElement('img');
-        img.src = '/images/logo.png?' + Date.now();
+        img.src = siteLogoApi + '?_=' + Date.now();
         img.alt = 'ロゴ';
         img.style.cssText = 'max-width:100%;max-height:72px;object-fit:contain;padding:8px';
         const frame = document.getElementById('logoCurrentFrame');
@@ -1355,9 +1361,18 @@
   }
 
   function loadLogoFile(file) {
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      toast('JPG・PNG・WEBP形式の画像を選択してください', 'error');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      toast('画像サイズは3MB以下にしてください', 'error');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = e => {
       selectedLogoData = e.target.result;
+      selectedLogoBlob = file;
       const frame = document.getElementById('logoCurrentFrame');
       frame.innerHTML = '';
       const img = document.createElement('img');
@@ -1386,6 +1401,7 @@
       const d = await res.json();
       if (res.ok && d.result) {
         selectedLogoData = d.result;
+        selectedLogoBlob = await fetch(d.result).then(r => r.blob());
         const rFrame = document.getElementById('logoRembgFrame');
         rFrame.innerHTML = '';
         const img = document.createElement('img');
@@ -1411,24 +1427,31 @@
   }
 
   async function saveLogoImage() {
-    if (!selectedLogoData) return;
+    if (!selectedLogoBlob) return;
     const btn = document.getElementById('btnSaveLogo');
     btn.textContent = '保存中...';
     btn.disabled = true;
     try {
-      const res = await fetch('/api/save-logo-image', {
+      const formData = new FormData();
+      const extension = selectedLogoBlob.type === 'image/png' ? 'png'
+        : selectedLogoBlob.type === 'image/webp' ? 'webp' : 'jpg';
+      formData.append('logo', selectedLogoBlob, 'logo.' + extension);
+      const res = await fetch(siteLogoApi, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: selectedLogoData })
+        headers: { 'Accept': 'application/json' },
+        body: formData
       });
-      if (res.ok) {
-        toast('ロゴを保存しました ✓');
+      if (res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+        toast('ロゴを保存し、全訪問者のLPへ反映しました ✓');
+        selectedLogoData = null;
+        selectedLogoBlob = null;
         loadCurrentLogo();
       } else {
-        toast('保存に失敗しました', 'error');
+        const data = await res.json().catch(() => ({}));
+        toast(data.error || 'ロゴ保存機能が利用できません（HTTP ' + res.status + '）', 'error');
       }
     } catch (_) {
-      toast('サーバーエラー', 'error');
+      toast('ロゴ保存機能に接続できません。Netlifyのデプロイ状態をご確認ください', 'error');
     }
     btn.textContent = 'このロゴを保存';
     btn.disabled = false;
