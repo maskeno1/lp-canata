@@ -323,8 +323,16 @@
   // ===== Profile photo =====
   var profileFrame = document.getElementById('profilePhotoFrame');
   if (profileFrame) {
+    var sharedImg = new Image();
+    sharedImg.onload = function () {
+      profileFrame.innerHTML = '';
+      profileFrame.appendChild(sharedImg);
+    };
+    sharedImg.src = '/.netlify/functions/profile-photo?_=' + Date.now();
+
     var testImg = new Image();
     testImg.onload = function () {
+      if (profileFrame.querySelector('img')) return;
       var img = document.createElement('img');
       img.src = '/images/profile.png?' + Date.now();
       img.alt = '柴田 朋浩';

@@ -560,6 +560,9 @@
           <p>クリックまたはドラッグして写真を選択</p>
           <small>JPG / PNG / WEBP 対応</small>
         </div>
+        <p style="font-size:12px;color:var(--tl);margin-top:10px;line-height:1.7">
+          保存した写真は共有ストレージへアップロードされ、全訪問者のLPに反映されます。
+        </p>
         <div class="btn-actions" style="margin-top:16px">
           <button class="btn btn-primary" id="btnSavePhoto" onclick="saveProfilePhoto()" disabled>この写真を保存</button>
         </div>
@@ -1075,18 +1078,28 @@
   // ===== Photo upload =====
   let selectedPhotoData = null;
 
+  function showPhoto(dataUrl, alt) {
+    const frame = document.getElementById('photoCurrentFrame');
+    if (!frame || !dataUrl) return;
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.alt = alt || '代表者写真';
+    frame.innerHTML = '';
+    frame.appendChild(img);
+  }
+
   async function loadCurrentPhoto() {
     try {
-      const res = await fetch('/images/profile.png', { method: 'HEAD' });
+      const res = await fetch('/.netlify/functions/profile-photo', {
+        method: 'GET',
+        cache: 'no-store'
+      });
       if (res.ok) {
-        const img = document.createElement('img');
-        img.src = '/images/profile.png?' + Date.now();
-        img.alt = '代表者写真';
-        const frame = document.getElementById('photoCurrentFrame');
-        frame.innerHTML = '';
-        frame.appendChild(img);
+        showPhoto('/.netlify/functions/profile-photo?_=' + Date.now());
+        return;
       }
     } catch (_) {}
+    showPhoto('/images/profile.png?' + Date.now());
   }
   loadCurrentPhoto();
 
@@ -1107,16 +1120,26 @@
   }
 
   function loadPhotoFile(file) {
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      toast('JPG・PNG・WEBP形式の画像を選択してください', 'error');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = e => {
-      selectedPhotoData = e.target.result;
-      const frame = document.getElementById('photoCurrentFrame');
-      frame.innerHTML = '';
       const img = document.createElement('img');
-      img.src = selectedPhotoData;
-      img.alt = '選択した写真';
-      frame.appendChild(img);
-      document.getElementById('btnSavePhoto').disabled = false;
+      img.onload = function () {
+        const maxSize = 1000;
+        const scale = Math.min(1, maxSize / Math.max(img.naturalWidth, img.naturalHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        selectedPhotoData = canvas.toDataURL('image/jpeg', .86);
+        showPhoto(selectedPhotoData, '選択した写真');
+        document.getElementById('btnSavePhoto').disabled = false;
+      };
+      img.onerror = function () { toast('画像を読み込めませんでした', 'error'); };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
@@ -1127,19 +1150,25 @@
     btn.textContent = '保存中...';
     btn.disabled = true;
     try {
-      const res = await fetch('/api/save-profile-photo', {
+      const res = await fetch('/.netlify/functions/profile-photo', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ image: selectedPhotoData })
       });
-      if (res.ok) {
-        toast('写真を保存しました ✓');
+      if (res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+        toast('写真を保存し、全訪問者のLPへ反映しました ✓');
         loadCurrentPhoto();
-      } else {
-        toast('保存に失敗しました', 'error');
+        btn.textContent = 'この写真を保存';
+        btn.disabled = false;
+        return;
       }
+      const data = await res.json().catch(() => ({}));
+      toast(data.error || '写真を共有ストレージへ保存できませんでした', 'error');
     } catch (_) {
-      toast('サーバーエラー', 'error');
+      toast('写真を共有ストレージへ保存できませんでした', 'error');
     }
     btn.textContent = 'この写真を保存';
     btn.disabled = false;
