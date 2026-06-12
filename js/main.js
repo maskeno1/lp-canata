@@ -323,17 +323,16 @@
   // ===== Profile photo =====
   var profileFrame = document.getElementById('profilePhotoFrame');
   if (profileFrame) {
-    var storedProfilePhoto = localStorage.getItem('kanata_profile_photo');
-    if (storedProfilePhoto) {
-      var storedImg = document.createElement('img');
-      storedImg.src = storedProfilePhoto;
-      storedImg.alt = '柴田 朋浩';
+    var sharedImg = new Image();
+    sharedImg.onload = function () {
       profileFrame.innerHTML = '';
-      profileFrame.appendChild(storedImg);
-      return;
-    }
+      profileFrame.appendChild(sharedImg);
+    };
+    sharedImg.src = '/.netlify/functions/profile-photo?_=' + Date.now();
+
     var testImg = new Image();
     testImg.onload = function () {
+      if (profileFrame.querySelector('img')) return;
       var img = document.createElement('img');
       img.src = '/images/profile.png?' + Date.now();
       img.alt = '柴田 朋浩';
