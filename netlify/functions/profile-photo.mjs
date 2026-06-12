@@ -1,5 +1,4 @@
 import { getStore } from '@netlify/blobs';
-import { timingSafeEqual } from 'node:crypto';
 
 const store = getStore('site-images');
 const key = 'profile-photo';
@@ -9,13 +8,6 @@ function json(data, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   });
-}
-
-function passwordsMatch(actual, expected) {
-  const actualBytes = Buffer.from(actual || '');
-  const expectedBytes = Buffer.from(expected || '');
-  return actualBytes.length === expectedBytes.length
-    && timingSafeEqual(actualBytes, expectedBytes);
 }
 
 export default async (request) => {
@@ -37,12 +29,9 @@ export default async (request) => {
     return json({ error: 'Method not allowed' }, 405);
   }
 
-  const expectedPassword = process.env.ADMIN_UPLOAD_PASSWORD;
-  if (!expectedPassword) {
-    return json({ error: 'Netlifyの環境変数 ADMIN_UPLOAD_PASSWORD が未設定です' }, 503);
-  }
-  if (!passwordsMatch(request.headers.get('x-admin-password'), expectedPassword)) {
-    return json({ error: 'アップロードキーが一致しません' }, 401);
+  const origin = request.headers.get('origin');
+  if (origin && origin !== new URL(request.url).origin) {
+    return json({ error: '不正な送信元です' }, 403);
   }
 
   const body = await request.json().catch(() => null);

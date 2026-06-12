@@ -563,10 +563,6 @@
         <p style="font-size:12px;color:var(--tl);margin-top:10px;line-height:1.7">
           保存した写真は共有ストレージへアップロードされ、全訪問者のLPに反映されます。
         </p>
-        <div class="f-group" style="margin-top:16px">
-          <label class="f-label" for="photoUploadKey">アップロードキー</label>
-          <input class="f-input" id="photoUploadKey" type="password" autocomplete="off" placeholder="Netlifyに設定したアップロードキー">
-        </div>
         <div class="btn-actions" style="margin-top:16px">
           <button class="btn btn-primary" id="btnSavePhoto" onclick="saveProfilePhoto()" disabled>この写真を保存</button>
         </div>
@@ -1154,29 +1150,23 @@
     btn.textContent = '保存中...';
     btn.disabled = true;
     try {
-      const uploadPassword = document.getElementById('photoUploadKey').value;
-      if (!uploadPassword) {
-        toast('アップロードキーを入力してください', 'error');
-      } else {
-        const res = await fetch('/.netlify/functions/profile-photo', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Admin-Password': uploadPassword
-          },
-          body: JSON.stringify({ image: selectedPhotoData })
-        });
-        if (res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
-          toast('写真を保存し、全訪問者のLPへ反映しました ✓');
-          loadCurrentPhoto();
-          btn.textContent = 'この写真を保存';
-          btn.disabled = false;
-          return;
-        }
-        const data = await res.json().catch(() => ({}));
-        toast(data.error || '写真を共有ストレージへ保存できませんでした', 'error');
+      const res = await fetch('/.netlify/functions/profile-photo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ image: selectedPhotoData })
+      });
+      if (res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+        toast('写真を保存し、全訪問者のLPへ反映しました ✓');
+        loadCurrentPhoto();
+        btn.textContent = 'この写真を保存';
+        btn.disabled = false;
+        return;
       }
+      const data = await res.json().catch(() => ({}));
+      toast(data.error || '写真を共有ストレージへ保存できませんでした', 'error');
     } catch (_) {
       toast('写真を共有ストレージへ保存できませんでした', 'error');
     }
