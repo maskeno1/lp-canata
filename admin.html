@@ -749,22 +749,60 @@
     setTimeout(() => { t.classList.remove('show'); }, 3000);
   }
 
+  const sharedContentApi = '/.netlify/functions/site-content';
+  let sharedContentCache = null;
+
+  async function loadSharedContent() {
+    if (sharedContentCache) return sharedContentCache;
+    const res = await fetch(sharedContentApi, {
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store'
+    });
+    if (!res.ok || !(res.headers.get('content-type') || '').includes('application/json')) {
+      throw new Error('公開内容を読み込めません（HTTP ' + res.status + '）');
+    }
+    sharedContentCache = await res.json();
+    return sharedContentCache;
+  }
+
+  async function publishSharedContent(name, value, successMessage) {
+    const res = await fetch(sharedContentApi, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ [name]: value })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || '公開内容を保存できません（HTTP ' + res.status + '）');
+    sharedContentCache = data.content || null;
+    localStorage.removeItem('kanata_' + name);
+    toast(successMessage || '保存して公開しました ✓');
+  }
+
   // ===== Services (dynamic) =====
   var servicesLocal = [];
 
   async function loadServices() {
     try {
+      const shared = await loadSharedContent();
+      if (Array.isArray(shared.services)) {
+        servicesLocal = shared.services;
+        renderServicesList();
+        return;
+      }
+    } catch (_) {}
+    try {
       const res = await fetch('/api/services');
       if (res.ok) { servicesLocal = await res.json(); renderServicesList(); return; }
     } catch (_) {}
-    // Netlify: localStorage または JSONファイルから取得
     try {
       const stored = localStorage.getItem('kanata_services');
-      if (stored) { servicesLocal = JSON.parse(stored); }
-      else {
-        const r = await fetch('/services.json?_=' + Date.now());
-        if (r.ok) servicesLocal = await r.json();
+      if (stored) {
+        servicesLocal = JSON.parse(stored);
+        renderServicesList();
+        return;
       }
+      const r = await fetch('/services.json?_=' + Date.now());
+      if (r.ok) servicesLocal = await r.json();
     } catch (_) {}
     renderServicesList();
   }
@@ -826,15 +864,10 @@
       return { title: el.value, text: texts[i].value };
     });
     try {
-      const res = await fetch('/api/services', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(servicesLocal)
-      });
-      if (res.ok) { localStorage.setItem('kanata_services', JSON.stringify(servicesLocal)); toast('保存しました ✓'); return; }
-    } catch (_) {}
-    localStorage.setItem('kanata_services', JSON.stringify(servicesLocal));
-    toast('保存しました ✓（localStorageに保存）');
+      await publishSharedContent('services', servicesLocal);
+    } catch (error) {
+      toast(error.message, 'error');
+    }
   }
 
   // ===== Strengths (dynamic) =====
@@ -842,17 +875,26 @@
 
   async function loadStrengths() {
     try {
+      const shared = await loadSharedContent();
+      if (Array.isArray(shared.strengths)) {
+        strengthsLocal = shared.strengths;
+        renderStrengthsList();
+        return;
+      }
+    } catch (_) {}
+    try {
       const res = await fetch('/api/strengths');
       if (res.ok) { strengthsLocal = await res.json(); renderStrengthsList(); return; }
     } catch (_) {}
-    // Netlify: localStorage または JSONファイルから取得
     try {
       const stored = localStorage.getItem('kanata_strengths');
-      if (stored) { strengthsLocal = JSON.parse(stored); }
-      else {
-        const r = await fetch('/strengths.json?_=' + Date.now());
-        if (r.ok) strengthsLocal = await r.json();
+      if (stored) {
+        strengthsLocal = JSON.parse(stored);
+        renderStrengthsList();
+        return;
       }
+      const r = await fetch('/strengths.json?_=' + Date.now());
+      if (r.ok) strengthsLocal = await r.json();
     } catch (_) {}
     renderStrengthsList();
   }
@@ -913,19 +955,23 @@
       return { title: el.value, text: texts[i].value };
     });
     try {
-      const res = await fetch('/api/strengths', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(strengthsLocal)
-      });
-      if (res.ok) { localStorage.setItem('kanata_strengths', JSON.stringify(strengthsLocal)); toast('保存しました ✓'); return; }
-    } catch (_) {}
-    localStorage.setItem('kanata_strengths', JSON.stringify(strengthsLocal));
-    toast('保存しました ✓（localStorageに保存）');
+      await publishSharedContent('strengths', strengthsLocal);
+    } catch (error) {
+      toast(error.message, 'error');
+    }
   }
 
   // ===== Load & save content =====
   async function loadContent() {
+    try {
+      const shared = await loadSharedContent();
+      if (shared.editable && typeof shared.editable === 'object') {
+        Object.entries(shared.editable).forEach(([key, val]) => {
+          document.querySelectorAll(`[data-key="${key}"]`).forEach(el => { el.value = val; });
+        });
+        return;
+      }
+    } catch (_) {}
     // ① まず管理サーバー(/api/content)から取得を試みる
     try {
       const res = await fetch('/api/content');
@@ -936,22 +982,14 @@
             el.value = val;
           });
         });
-        // localStorageにも保存してLPに反映
-        const editable = {};
-        Object.entries(data).forEach(([k,v]) => { editable[k] = v; });
-        localStorage.setItem('kanata_editable', JSON.stringify(editable));
         return;
       }
     } catch (_) {}
-    // ② Netlify: localStorageから読み込み
     try {
       const stored = localStorage.getItem('kanata_editable');
       if (stored) {
-        const data = JSON.parse(stored);
-        Object.entries(data).forEach(([key, val]) => {
-          document.querySelectorAll(`[data-key="${key}"]`).forEach(el => {
-            el.value = val;
-          });
+        Object.entries(JSON.parse(stored)).forEach(([key, val]) => {
+          document.querySelectorAll(`[data-key="${key}"]`).forEach(el => { el.value = val; });
         });
       }
     } catch (_) {}
@@ -963,24 +1001,11 @@
       payload[el.dataset.key] = el.value;
     });
 
-    // ① 管理サーバーへ保存を試みる
     try {
-      const res = await fetch('/api/content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        // localStorageにも保存してLPにも即反映
-        localStorage.setItem('kanata_editable', JSON.stringify(payload));
-        toast('保存しました ✓');
-        return;
-      }
-    } catch (_) {}
-
-    // ② Netlify: localStorageに保存（LPへの反映はJS経由）
-    localStorage.setItem('kanata_editable', JSON.stringify(payload));
-    toast('保存しました ✓（localStorageに保存）');
+      await publishSharedContent('editable', payload);
+    } catch (error) {
+      toast(error.message, 'error');
+    }
   }
 
   // ===== Load contacts =====
@@ -1220,17 +1245,26 @@
 
   async function loadBadges() {
     try {
+      const shared = await loadSharedContent();
+      if (Array.isArray(shared.badges)) {
+        badgesLocal = shared.badges;
+        renderBadgesList();
+        return;
+      }
+    } catch (_) {}
+    try {
       const res = await fetch('/api/badges');
       if (res.ok) { badgesLocal = await res.json(); renderBadgesList(); return; }
     } catch (_) {}
-    // Netlify: JSONファイルから直接取得
     try {
       const stored = localStorage.getItem('kanata_badges');
-      if (stored) { badgesLocal = JSON.parse(stored); }
-      else {
-        const r = await fetch('/badges.json?_=' + Date.now());
-        if (r.ok) badgesLocal = await r.json();
+      if (stored) {
+        badgesLocal = JSON.parse(stored);
+        renderBadgesList();
+        return;
       }
+      const r = await fetch('/badges.json?_=' + Date.now());
+      if (r.ok) badgesLocal = await r.json();
     } catch (_) {}
     renderBadgesList();
   }
@@ -1273,15 +1307,10 @@
     const inputs = document.querySelectorAll('[data-badge-idx]');
     badgesLocal = Array.from(inputs).map(el => ({ label: el.value }));
     try {
-      const res = await fetch('/api/badges', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(badgesLocal)
-      });
-      if (res.ok) { localStorage.setItem('kanata_badges', JSON.stringify(badgesLocal)); toast('資格を保存しました ✓'); return; }
-    } catch (_) {}
-    localStorage.setItem('kanata_badges', JSON.stringify(badgesLocal));
-    toast('資格を保存しました ✓（localStorageに保存）');
+      await publishSharedContent('badges', badgesLocal, '資格を保存して公開しました ✓');
+    } catch (error) {
+      toast(error.message, 'error');
+    }
   }
 
   // ===== Logo upload =====

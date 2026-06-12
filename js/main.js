@@ -249,6 +249,22 @@
     }).join('');
   }
 
+  function applyPublishedEditable(data) {
+    Object.keys(data || {}).forEach(function(key) {
+      document.querySelectorAll('[data-editable="' + key + '"]').forEach(function(el) {
+        el.innerHTML = escHtml(data[key]).replace(/\n/g, '<br>');
+      });
+    });
+  }
+
+  var publishedContentPromise = fetch('/.netlify/functions/site-content', {
+    headers: { 'Accept': 'application/json' },
+    cache: 'no-store'
+  }).then(function(res) {
+    if (!res.ok) throw new Error('not available');
+    return res.json();
+  }).catch(function() { return {}; });
+
   // ===== Services グリッド =====
   var servicesGrid = document.getElementById('servicesGrid');
   if (servicesGrid) {
@@ -257,18 +273,12 @@
       {title: '組織診断・改善', text: '現状の組織課題を多角的に診断し、改善計画を立案・実行支援します。社内コミュニケーション、チームビルディング、マネジメント層の強化まで幅広く対応します。'},
       {title: '人事制度設計',   text: '評価制度・給与体系・採用戦略など、組織の成長を支える人事の仕組みをゼロから構築・見直します。人が活きる環境づくりをサポートします。'}
     ];
-    var cachedSvc = localStorage.getItem('kanata_services');
-    if (cachedSvc) {
-      try { renderServicesGrid(JSON.parse(cachedSvc)); } catch(_){ renderServicesGrid(DEFAULT_SERVICES); }
-    } else {
-      renderServicesGrid(DEFAULT_SERVICES);
-    }
-    if (!cachedSvc) {
-      fetch('/services.json?_=' + Date.now())
-        .then(function(r){ if (!r.ok) throw new Error('not ok'); return r.json(); })
-        .then(function(items){ renderServicesGrid(items); })
-        .catch(function(){});
-    }
+    var servicesDefaultsPromise = fetch('/services.json?_=' + Date.now())
+      .then(function(r){ if (!r.ok) throw new Error('not ok'); return r.json(); })
+      .catch(function(){ return DEFAULT_SERVICES; });
+    Promise.all([servicesDefaultsPromise, publishedContentPromise]).then(function(results) {
+      renderServicesGrid(Array.isArray(results[1].services) ? results[1].services : results[0]);
+    });
   }
 
   // ===== Strengths グリッド =====
@@ -279,18 +289,12 @@
       {title: '経営者との対話を最優先に',     text: '答えを押しつけず、問いかけと傾聴で経営者自身の気づきを引き出すスタイル。信頼関係に基づいた長期的なパートナーシップが、持続的な組織変革を生み出します。'},
       {title: '現場を知る実践知',             text: '大手企業での豊富なプロジェクト経験をもとに、理論だけでなく実際に機能する施策を提案。経営者の現場感覚に合わせた、地に足のついた支援を行います。'}
     ];
-    var cachedStr = localStorage.getItem('kanata_strengths');
-    if (cachedStr) {
-      try { renderStrengthsGrid(JSON.parse(cachedStr)); } catch(_){ renderStrengthsGrid(DEFAULT_STRENGTHS); }
-    } else {
-      renderStrengthsGrid(DEFAULT_STRENGTHS);
-    }
-    if (!cachedStr) {
-      fetch('/strengths.json?_=' + Date.now())
-        .then(function(r){ if (!r.ok) throw new Error('not ok'); return r.json(); })
-        .then(function(items){ renderStrengthsGrid(items); })
-        .catch(function(){});
-    }
+    var strengthsDefaultsPromise = fetch('/strengths.json?_=' + Date.now())
+      .then(function(r){ if (!r.ok) throw new Error('not ok'); return r.json(); })
+      .catch(function(){ return DEFAULT_STRENGTHS; });
+    Promise.all([strengthsDefaultsPromise, publishedContentPromise]).then(function(results) {
+      renderStrengthsGrid(Array.isArray(results[1].strengths) ? results[1].strengths : results[0]);
+    });
   }
 
   // ===== Badges リスト =====
@@ -302,37 +306,18 @@
       {label: '組織開発ファシリテーター'},
       {label: 'MBA(グロービス経営大学院)'}
     ];
-    // まずlocalStorageのカスタムデータがあれば即時表示
-    var cachedBdg = localStorage.getItem('kanata_badges');
-    if (cachedBdg) {
-      try { renderBadgeList(JSON.parse(cachedBdg)); } catch(_){ renderBadgeList(DEFAULT_BADGE_ITEMS); }
-    } else {
-      // キャッシュなしならデフォルトで先行表示
-      renderBadgeList(DEFAULT_BADGE_ITEMS);
-    }
-    // badges.jsonで常に上書き（管理画面で更新された場合はlocalStorageが優先されるためここでは上書きしない）
-    // ただしlocalStorageがない場合はJSONから取得
-    if (!cachedBdg) {
-      fetch('/badges.json?_=' + Date.now())
-        .then(function(r){ if (!r.ok) throw new Error('not ok'); return r.json(); })
-        .then(function(items){ renderBadgeList(items); })
-        .catch(function(){}); // デフォルト表示のまま
-    }
+    var badgesDefaultsPromise = fetch('/badges.json?_=' + Date.now())
+      .then(function(r){ if (!r.ok) throw new Error('not ok'); return r.json(); })
+      .catch(function(){ return DEFAULT_BADGE_ITEMS; });
+    Promise.all([badgesDefaultsPromise, publishedContentPromise]).then(function(results) {
+      renderBadgeList(Array.isArray(results[1].badges) ? results[1].badges : results[0]);
+    });
   }
 
-  // ===== data-editable をlocalStorageから反映 =====
-  (function applyEditableOverrides(){
-    var stored = localStorage.getItem('kanata_editable');
-    if (!stored) return;
-    try {
-      var data = JSON.parse(stored);
-      Object.keys(data).forEach(function(key){
-        document.querySelectorAll('[data-editable="' + key + '"]').forEach(function(el){
-          el.innerHTML = data[key];
-        });
-      });
-    } catch(_){}
-  })();
+  // ===== 公開済みの編集内容を全訪問者へ反映 =====
+  publishedContentPromise.then(function(data) {
+    if (data.editable) applyPublishedEditable(data.editable);
+  });
 
   // ===== Profile photo =====
   var profileFrame = document.getElementById('profilePhotoFrame');
