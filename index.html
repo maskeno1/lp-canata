@@ -16,7 +16,7 @@
 <nav class="nav" id="nav">
   <div class="nav__inner">
     <a class="nav__logo" href="#hero">
-      <img id="navLogoImg" class="nav__logo-img" src="/images/logo.png" alt="株式会社かなた" style="display:none">
+      <img id="navLogoImg" class="nav__logo-img" src="/.netlify/functions/site-logo" alt="株式会社かなた" style="display:none">
       <svg id="navLogoSvg" class="nav__logo-icon" width="30" height="30" viewBox="0 0 32 32" fill="none">
         <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="1.8"/>
         <path d="M7 16 Q12 9 16 16 Q20 23 25 16" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
@@ -291,7 +291,7 @@
   <div class="footer__inner container">
     <div class="footer__brand">
       <div class="footer__logo">
-        <img id="footerLogoImg" src="/images/logo.png" alt="株式会社かなた" style="display:none">
+        <img id="footerLogoImg" src="/.netlify/functions/site-logo" alt="株式会社かなた" style="display:none">
         <svg id="footerLogoSvg" width="26" height="26" viewBox="0 0 32 32" fill="none">
           <circle cx="16" cy="16" r="13" stroke="var(--green-light)" stroke-width="1.8"/>
           <path d="M7 16 Q12 9 16 16 Q20 23 25 16" stroke="var(--green-light)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
@@ -324,8 +324,14 @@
   var ftImg   = document.getElementById('footerLogoImg');
   var ftSvg   = document.getElementById('footerLogoSvg');
   function applyLogo(img, svg) {
-    img.onload  = function () { img.style.display = ''; if (svg) svg.style.display = 'none'; };
-    img.onerror = function () { img.style.display = 'none'; if (svg) svg.style.display = ''; };
+    function showImage() { img.style.display = ''; if (svg) svg.style.display = 'none'; }
+    function showFallback() { img.style.display = 'none'; if (svg) svg.style.display = ''; }
+    img.onload = showImage;
+    img.onerror = showFallback;
+    if (img.complete) {
+      if (img.naturalWidth) showImage();
+      else showFallback();
+    }
   }
   if (navImg)  applyLogo(navImg,  navSvg);
   if (ftImg)   applyLogo(ftImg,   ftSvg);
