@@ -323,6 +323,15 @@
   // ===== Profile photo =====
   var profileFrame = document.getElementById('profilePhotoFrame');
   if (profileFrame) {
+    var storedProfilePhoto = localStorage.getItem('kanata_profile_photo');
+    if (storedProfilePhoto) {
+      var storedImg = document.createElement('img');
+      storedImg.src = storedProfilePhoto;
+      storedImg.alt = '柴田 朋浩';
+      profileFrame.innerHTML = '';
+      profileFrame.appendChild(storedImg);
+      return;
+    }
     var testImg = new Image();
     testImg.onload = function () {
       var img = document.createElement('img');

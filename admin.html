@@ -560,6 +560,9 @@
           <p>クリックまたはドラッグして写真を選択</p>
           <small>JPG / PNG / WEBP 対応</small>
         </div>
+        <p style="font-size:12px;color:var(--tl);margin-top:10px;line-height:1.7">
+          静的サイトでは、この端末のブラウザに写真を保存してLPへ反映します。
+        </p>
         <div class="btn-actions" style="margin-top:16px">
           <button class="btn btn-primary" id="btnSavePhoto" onclick="saveProfilePhoto()" disabled>この写真を保存</button>
         </div>
@@ -1075,16 +1078,26 @@
   // ===== Photo upload =====
   let selectedPhotoData = null;
 
+  function showPhoto(dataUrl, alt) {
+    const frame = document.getElementById('photoCurrentFrame');
+    if (!frame || !dataUrl) return;
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.alt = alt || '代表者写真';
+    frame.innerHTML = '';
+    frame.appendChild(img);
+  }
+
   async function loadCurrentPhoto() {
+    const storedPhoto = localStorage.getItem('kanata_profile_photo');
+    if (storedPhoto) {
+      showPhoto(storedPhoto);
+      return;
+    }
     try {
       const res = await fetch('/images/profile.png', { method: 'HEAD' });
       if (res.ok) {
-        const img = document.createElement('img');
-        img.src = '/images/profile.png?' + Date.now();
-        img.alt = '代表者写真';
-        const frame = document.getElementById('photoCurrentFrame');
-        frame.innerHTML = '';
-        frame.appendChild(img);
+        showPhoto('/images/profile.png?' + Date.now());
       }
     } catch (_) {}
   }
@@ -1107,16 +1120,26 @@
   }
 
   function loadPhotoFile(file) {
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      toast('JPG・PNG・WEBP形式の画像を選択してください', 'error');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = e => {
-      selectedPhotoData = e.target.result;
-      const frame = document.getElementById('photoCurrentFrame');
-      frame.innerHTML = '';
       const img = document.createElement('img');
-      img.src = selectedPhotoData;
-      img.alt = '選択した写真';
-      frame.appendChild(img);
-      document.getElementById('btnSavePhoto').disabled = false;
+      img.onload = function () {
+        const maxSize = 1000;
+        const scale = Math.min(1, maxSize / Math.max(img.naturalWidth, img.naturalHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        selectedPhotoData = canvas.toDataURL('image/jpeg', .86);
+        showPhoto(selectedPhotoData, '選択した写真');
+        document.getElementById('btnSavePhoto').disabled = false;
+      };
+      img.onerror = function () { toast('画像を読み込めませんでした', 'error'); };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
@@ -1127,19 +1150,33 @@
     btn.textContent = '保存中...';
     btn.disabled = true;
     try {
-      const res = await fetch('/api/save-profile-photo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: selectedPhotoData })
-      });
-      if (res.ok) {
-        toast('写真を保存しました ✓');
-        loadCurrentPhoto();
-      } else {
-        toast('保存に失敗しました', 'error');
+      if (await hasAdminApi()) {
+        const res = await fetch('/api/save-profile-photo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ image: selectedPhotoData })
+        });
+        if (res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+          localStorage.removeItem('kanata_profile_photo');
+          toast('写真を公開サーバーに保存しました ✓');
+          loadCurrentPhoto();
+          btn.textContent = 'この写真を保存';
+          btn.disabled = false;
+          return;
+        }
       }
-    } catch (_) {
-      toast('サーバーエラー', 'error');
+      localStorage.setItem('kanata_profile_photo', selectedPhotoData);
+      toast('写真をこのブラウザに保存し、LPへ反映しました ✓');
+    } catch (ex) {
+      try {
+        localStorage.setItem('kanata_profile_photo', selectedPhotoData);
+        toast('写真をこのブラウザに保存し、LPへ反映しました ✓');
+      } catch (_) {
+        toast('画像を保存できませんでした。別の画像をお試しください', 'error');
+      }
     }
     btn.textContent = 'この写真を保存';
     btn.disabled = false;
