@@ -15,6 +15,23 @@
       return Date.now() - ts < 7 * 24 * 60 * 60 * 1000;
     }
 
+    async function hasAdminApi() {
+      try {
+        const res = await fetch('/api/ping', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store'
+        });
+        if (!res.ok || !(res.headers.get('content-type') || '').includes('application/json')) {
+          return false;
+        }
+        const data = await res.json();
+        return data.ok === true;
+      } catch (_) {
+        return false;
+      }
+    }
+
     (async function earlyAuthGuard() {
       const redirect = () => window.location.replace('/admin-login.html');
       const show     = () => {
@@ -22,15 +39,25 @@
         if (s) s.remove();
       };
 
-      // 管理サーバー経由（Cookie認証）を優先チェック
       try {
-        const res = await fetch('/api/contacts', { method: 'GET' });
-        if (res.status === 200) { show(); return; }
-        if (res.status === 401) { redirect(); return; }
-        // 404 = 管理サーバーなし → localStorageで確認
+        // APIが実在する場合だけCookie認証を使用する。
+        // 独自ドメインのリライトによるHTMLの200レスポンスは認証成功にしない。
+        if (await hasAdminApi()) {
+          const res = await fetch('/api/contacts', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            cache: 'no-store'
+          });
+          if (res.status === 200 && (res.headers.get('content-type') || '').includes('application/json')) {
+            show();
+            return;
+          }
+          redirect();
+          return;
+        }
       } catch (_) {}
 
-      // Netlify静的配信: localStorageセッション + 埋め込みハッシュ照合
+      // 静的配信: localStorageセッション + 埋め込みハッシュ照合
       const storedHash = localStorage.getItem('admin_auth');
       if (!storedHash || !isSessionValid()) { redirect(); return; }
       if (storedHash === ADMIN_HASH) { show(); return; }

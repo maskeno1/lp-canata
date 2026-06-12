@@ -140,10 +140,30 @@
     const ADMIN_HASH = '6571266025bb051b058893e23058f63a8061d05784363ee95d388a3d757d3487';
 
     async function sha256(text) {
+      if (!window.crypto || !window.crypto.subtle) {
+        throw new Error('secure-context-required');
+      }
       const buf = await crypto.subtle.digest('SHA-256',
         new TextEncoder().encode(text));
       return Array.from(new Uint8Array(buf))
         .map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function hasAdminApi() {
+      try {
+        const res = await fetch('/api/ping', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store'
+        });
+        if (!res.ok || !(res.headers.get('content-type') || '').includes('application/json')) {
+          return false;
+        }
+        const data = await res.json();
+        return data.ok === true;
+      } catch (_) {
+        return false;
+      }
     }
 
     function saveSession(hash) {
@@ -160,40 +180,49 @@
       btn.disabled = true;
       btn.textContent = '確認中...';
 
-      // ① 管理サーバー（/api/login）が使える場合はそちらを優先
       try {
-        const res = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pw })
-        });
-        if (res.ok) {
-          saveSession(await sha256(pw));
+        const hash = await sha256(pw);
+
+        // APIが実在する場合だけサーバー認証を使用する。
+        // 独自ドメインのリライトによる偽の200レスポンスは静的認証へ回す。
+        if (await hasAdminApi()) {
+          const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({ password: pw })
+          });
+          if (res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+            saveSession(hash);
+            window.location.href = '/admin.html';
+            return;
+          }
+          err.textContent = res.status === 401
+            ? 'パスワードが正しくありません。'
+            : 'ログイン処理に失敗しました。しばらくしてから再度お試しください。';
+          err.style.display = 'block';
+          return;
+        }
+
+        // 静的配信: HTML埋め込みハッシュで照合
+        if (hash === ADMIN_HASH) {
+          saveSession(hash);
           window.location.href = '/admin.html';
           return;
         }
-        if (res.status === 401) {
-          err.textContent = 'パスワードが正しくありません。';
-          err.style.display = 'block';
-          btn.disabled = false;
-          btn.textContent = 'ログイン';
-          return;
-        }
-        // それ以外（404等）は ② へ
-      } catch (_) { /* サーバーなし → ② へ */ }
-
-      // ② Netlify静的配信: HTML埋め込みハッシュで照合
-      const hash = await sha256(pw);
-      if (hash === ADMIN_HASH) {
-        saveSession(hash);
-        window.location.href = '/admin.html';
-      } else {
         err.textContent = 'パスワードが正しくありません。';
         err.style.display = 'block';
+      } catch (ex) {
+        err.textContent = ex.message === 'secure-context-required'
+          ? '安全な接続が必要です。URLが https:// で始まっていることをご確認ください。'
+          : 'ログイン処理に失敗しました。ページを再読み込みしてお試しください。';
+        err.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'ログイン';
       }
-
-      btn.disabled = false;
-      btn.textContent = 'ログイン';
     });
   </script>
 </body>
