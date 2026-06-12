@@ -159,19 +159,33 @@
   }
 
   // ===== Scroll fade-up =====
-  var fadeObserver = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (!entry.isIntersecting) return;
-      var el = entry.target;
-      var delay = parseInt(el.dataset.delay || 0, 10);
-      setTimeout(function () { el.classList.add('visible'); }, delay);
-      fadeObserver.unobserve(el);
-    });
-  }, { threshold: 0.1 });
+  var fadeObserver = null;
+  if ('IntersectionObserver' in window) {
+    fadeObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        var delay = parseInt(el.dataset.delay || 0, 10);
+        setTimeout(function () { el.classList.add('visible'); }, delay);
+        fadeObserver.unobserve(el);
+      });
+    }, { threshold: 0.1 });
+  }
 
-  document.querySelectorAll('.fade-up').forEach(function (el) {
-    fadeObserver.observe(el);
-  });
+  function prepareFadeElements(elements) {
+    Array.prototype.forEach.call(elements, function (el) {
+      if (!fadeObserver) {
+        el.classList.add('visible');
+        return;
+      }
+      el.classList.add('fade-ready');
+      fadeObserver.observe(el);
+      // Browser extensions or observer quirks must never leave content hidden.
+      setTimeout(function () { el.classList.add('visible'); }, 3000);
+    });
+  }
+
+  prepareFadeElements(document.querySelectorAll('.fade-up'));
 
   // ===== Hero wind-in text =====
   function triggerHeroIn() {
@@ -213,7 +227,7 @@
         + '<p class="service-card__text">' + escHtml(s.text) + '</p>'
         + '</div>';
     }).join('');
-    servicesGrid.querySelectorAll('.fade-up').forEach(function(el){ fadeObserver.observe(el); });
+    prepareFadeElements(servicesGrid.querySelectorAll('.fade-up'));
   }
 
   function renderStrengthsGrid(items) {
@@ -225,7 +239,7 @@
         + '<p class="strength-item__text">' + escHtml(s.text) + '</p>'
         + '</div>';
     }).join('');
-    strengthsGrid.querySelectorAll('.fade-up').forEach(function(el){ fadeObserver.observe(el); });
+    prepareFadeElements(strengthsGrid.querySelectorAll('.fade-up'));
   }
 
   function renderBadgeList(items) {
