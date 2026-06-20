@@ -548,8 +548,9 @@
               <span>未設定</span>
             </div>
           </div>
-          <div class="btn-actions" style="justify-content:flex-start;margin-top:0;margin-bottom:12px">
-            <button class="btn btn-danger btn-sm" id="btnDeleteSignature" onclick="deleteSignatureImage()" disabled>登録済みの署名画像を削除</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:-2px 0 12px">
+            <small style="color:var(--tl);line-height:1.6">登録済み画像を削除すると、LPは文字の署名表示に戻ります。</small>
+            <button class="btn btn-danger btn-sm" id="btnDeleteSignature" onclick="deleteSignatureImage()">登録済みの署名画像を削除</button>
           </div>
           <div class="drop-zone" id="signatureDropZone">
             <input type="file" id="signatureFile" accept="image/jpeg,image/png,image/webp" style="display:none">
@@ -1278,16 +1279,12 @@
     img.style.cssText = 'max-width:100%;max-height:86px;object-fit:contain;padding:8px';
     frame.innerHTML = '';
     frame.appendChild(img);
-    const deleteBtn = document.getElementById('btnDeleteSignature');
-    if (deleteBtn) deleteBtn.disabled = false;
   }
 
   function clearSignaturePreview() {
     const frame = document.getElementById('signatureCurrentFrame');
     if (!frame) return;
     frame.innerHTML = '<div class="photo-empty"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M4 16c4-8 7 4 10-3 1-2 3-3 6-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>未設定</span></div>';
-    const deleteBtn = document.getElementById('btnDeleteSignature');
-    if (deleteBtn) deleteBtn.disabled = true;
   }
 
   async function loadCurrentSignature() {
@@ -1374,6 +1371,7 @@
   async function deleteSignatureImage() {
     const btn = document.getElementById('btnDeleteSignature');
     const saveBtn = document.getElementById('btnSaveSignature');
+    if (!btn) return;
     btn.textContent = '削除中...';
     btn.disabled = true;
     try {
@@ -1391,13 +1389,12 @@
       } else {
         const data = await res.json().catch(() => ({}));
         toast(data.error || '署名画像を削除できません（HTTP ' + res.status + '）', 'error');
-        btn.disabled = false;
       }
     } catch (_) {
       toast('署名画像の削除機能に接続できません。Netlifyのデプロイ状態をご確認ください', 'error');
-      btn.disabled = false;
     }
     btn.textContent = '登録済みの署名画像を削除';
+    btn.disabled = false;
   }
 
   // ===== Badges (dynamic) =====
