@@ -1269,6 +1269,14 @@
   let selectedSignatureData = null;
   let selectedSignatureBlob = null;
   const signatureApi = '/.netlify/functions/site-signature';
+  const blankSignaturePng = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=';
+
+  function makeBlankSignatureFile() {
+    const chars = atob(blankSignaturePng);
+    const bytes = new Uint8Array(chars.length);
+    for (let i = 0; i < chars.length; i++) bytes[i] = chars.charCodeAt(i);
+    return new File([bytes], 'blank-signature.png', { type: 'image/png' });
+  }
 
   function showSignature(dataUrl, alt) {
     const frame = document.getElementById('signatureCurrentFrame');
@@ -1390,8 +1398,24 @@
         clearSignaturePreview();
         toast('署名画像を削除し、文字署名に戻しました ✓');
       } else {
-        const data = await res.json().catch(() => ({}));
-        toast(data.error || '署名画像を削除できません（HTTP ' + res.status + '）', 'error');
+        const fallbackData = new FormData();
+        fallbackData.append('signature', makeBlankSignatureFile());
+        const fallbackRes = await fetch(signatureApi, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: fallbackData
+        });
+        if (fallbackRes.ok && (fallbackRes.headers.get('content-type') || '').includes('application/json')) {
+          selectedSignatureData = null;
+          selectedSignatureBlob = null;
+          if (signatureFile) signatureFile.value = '';
+          if (saveBtn) saveBtn.disabled = true;
+          clearSignaturePreview();
+          toast('署名画像を非表示にしました ✓');
+        } else {
+          const data = await res.json().catch(() => ({}));
+          toast(data.error || '署名画像を削除できません（HTTP ' + res.status + '）', 'error');
+        }
       }
     } catch (_) {
       toast('署名画像の削除機能に接続できません。Netlifyのデプロイ状態をご確認ください', 'error');
