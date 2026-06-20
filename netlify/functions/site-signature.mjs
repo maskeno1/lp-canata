@@ -32,6 +32,16 @@ export default async (request) => {
     }
   }
 
+  if (request.method === 'DELETE') {
+    try {
+      await store.delete(key);
+      return json({ status: 'ok' });
+    } catch (error) {
+      console.error('Failed to delete profile signature', error);
+      return json({ error: '共有ストレージから署名画像を削除できませんでした' }, 500);
+    }
+  }
+
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405);
   }
