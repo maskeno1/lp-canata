@@ -615,6 +615,14 @@ img { max-width: 100%; display: block; }
   text-align: right;
   letter-spacing: .08em;
 }
+.profile__sign-img {
+  display: block;
+  width: auto;
+  height: 72px;
+  max-width: min(260px, 100%);
+  object-fit: contain;
+  margin-left: auto;
+}
 
 /* ===== Contact ===== */
 .contact__body {
