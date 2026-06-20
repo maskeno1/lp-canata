@@ -1375,9 +1375,12 @@
     btn.textContent = '削除中...';
     btn.disabled = true;
     try {
+      const formData = new FormData();
+      formData.append('action', 'delete-signature');
       const res = await fetch(signatureApi, {
-        method: 'DELETE',
-        headers: { 'Accept': 'application/json' }
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: formData
       });
       if (res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
         selectedSignatureData = null;

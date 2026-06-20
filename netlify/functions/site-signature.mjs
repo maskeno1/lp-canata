@@ -10,6 +10,16 @@ function json(data, status = 200) {
   });
 }
 
+async function deleteSignature(store) {
+  try {
+    await store.delete(key);
+    return json({ status: 'ok' });
+  } catch (error) {
+    console.error('Failed to delete profile signature', error);
+    return json({ error: '共有ストレージから署名画像を削除できませんでした' }, 500);
+  }
+}
+
 export default async (request) => {
   const store = getStore('site-images');
 
@@ -33,13 +43,7 @@ export default async (request) => {
   }
 
   if (request.method === 'DELETE') {
-    try {
-      await store.delete(key);
-      return json({ status: 'ok' });
-    } catch (error) {
-      console.error('Failed to delete profile signature', error);
-      return json({ error: '共有ストレージから署名画像を削除できませんでした' }, 500);
-    }
+    return deleteSignature(store);
   }
 
   if (request.method !== 'POST') {
@@ -47,6 +51,10 @@ export default async (request) => {
   }
 
   const form = await request.formData().catch(() => null);
+  if (form?.get('action') === 'delete-signature') {
+    return deleteSignature(store);
+  }
+
   const signature = form?.get('signature');
   if (!signature || typeof signature === 'string' || !allowedTypes.has(signature.type)) {
     return json({ error: 'JPG・PNG・WEBP形式の画像を選択してください' }, 400);
