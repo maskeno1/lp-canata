@@ -252,6 +252,7 @@
   function applyPublishedEditable(data) {
     Object.keys(data || {}).forEach(function(key) {
       document.querySelectorAll('[data-editable="' + key + '"]').forEach(function(el) {
+        if (el.dataset.imageOverride === 'true') return;
         el.innerHTML = escHtml(data[key]).replace(/\n/g, '<br>');
       });
     });
@@ -318,6 +319,20 @@
   publishedContentPromise.then(function(data) {
     if (data.editable) applyPublishedEditable(data.editable);
   });
+
+  // ===== Profile signature =====
+  var signatureFrame = document.getElementById('profileSignature');
+  if (signatureFrame) {
+    var signatureImg = new Image();
+    signatureImg.className = 'profile__sign-img';
+    signatureImg.alt = signatureFrame.textContent.trim() || '署名';
+    signatureImg.onload = function () {
+      signatureFrame.innerHTML = '';
+      signatureFrame.appendChild(signatureImg);
+      signatureFrame.dataset.imageOverride = 'true';
+    };
+    signatureImg.src = '/.netlify/functions/site-signature?_=' + Date.now();
+  }
 
   // ===== Profile photo =====
   var profileFrame = document.getElementById('profilePhotoFrame');

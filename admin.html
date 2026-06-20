@@ -537,6 +537,27 @@
           <label class="f-label">署名（右下の氏名）</label>
           <input class="f-input" data-key="profile-sign" value="柴田 朋浩">
         </div>
+        <div class="f-group">
+          <label class="f-label">手書き署名画像</label>
+          <p style="font-size:12px;color:var(--tl);margin-bottom:10px;line-height:1.7">
+            画像を登録すると、LPの署名部分はこの画像で表示されます。背景透過PNG推奨です。
+          </p>
+          <div class="photo-box__frame transparent-bg" id="signatureCurrentFrame" style="height:100px;margin-bottom:12px">
+            <div class="photo-empty">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M4 16c4-8 7 4 10-3 1-2 3-3 6-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <span>未設定</span>
+            </div>
+          </div>
+          <div class="drop-zone" id="signatureDropZone">
+            <input type="file" id="signatureFile" accept="image/jpeg,image/png,image/webp" style="display:none">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p>クリックまたはドラッグして署名画像を選択</p>
+            <small>JPG / PNG / WEBP 対応</small>
+          </div>
+          <div class="btn-actions" style="margin-top:12px">
+            <button class="btn btn-primary btn-sm" id="btnSaveSignature" onclick="saveSignatureImage()" disabled>この署名画像を保存</button>
+          </div>
+        </div>
         <div class="btn-actions">
           <button class="btn btn-primary" onclick="saveSection('profile')">保存</button>
         </div>
@@ -1237,6 +1258,100 @@
       toast(message, 'error');
     }
     btn.textContent = 'この写真を保存';
+    btn.disabled = false;
+  }
+
+  // ===== Signature upload =====
+  let selectedSignatureData = null;
+  let selectedSignatureBlob = null;
+  const signatureApi = '/.netlify/functions/site-signature';
+
+  function showSignature(dataUrl, alt) {
+    const frame = document.getElementById('signatureCurrentFrame');
+    if (!frame || !dataUrl) return;
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.alt = alt || '署名画像';
+    img.style.cssText = 'max-width:100%;max-height:86px;object-fit:contain;padding:8px';
+    frame.innerHTML = '';
+    frame.appendChild(img);
+  }
+
+  async function loadCurrentSignature() {
+    try {
+      const res = await fetch(signatureApi, {
+        method: 'GET',
+        headers: { 'Accept': 'image/*, application/json' },
+        cache: 'no-store'
+      });
+      if (res.ok) showSignature(signatureApi + '?_=' + Date.now());
+    } catch (_) {}
+  }
+  loadCurrentSignature();
+
+  const signatureDropZone = document.getElementById('signatureDropZone');
+  const signatureFile = document.getElementById('signatureFile');
+  if (signatureDropZone && signatureFile) {
+    signatureDropZone.addEventListener('click', () => signatureFile.click());
+    signatureDropZone.addEventListener('dragover', e => { e.preventDefault(); signatureDropZone.classList.add('drag-over'); });
+    signatureDropZone.addEventListener('dragleave', () => signatureDropZone.classList.remove('drag-over'));
+    signatureDropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      signatureDropZone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) loadSignatureFile(e.dataTransfer.files[0]);
+    });
+    signatureFile.addEventListener('change', function () {
+      if (this.files[0]) loadSignatureFile(this.files[0]);
+    });
+  }
+
+  function loadSignatureFile(file) {
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+      toast('JPG・PNG・WEBP形式の画像を選択してください', 'error');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      toast('画像サイズは3MB以下にしてください', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      selectedSignatureData = e.target.result;
+      selectedSignatureBlob = file;
+      showSignature(selectedSignatureData, '選択した署名画像');
+      document.getElementById('btnSaveSignature').disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function saveSignatureImage() {
+    if (!selectedSignatureBlob) return;
+    const btn = document.getElementById('btnSaveSignature');
+    btn.textContent = '保存中...';
+    btn.disabled = true;
+    try {
+      const formData = new FormData();
+      const extension = selectedSignatureBlob.type === 'image/png' ? 'png'
+        : selectedSignatureBlob.type === 'image/webp' ? 'webp' : 'jpg';
+      formData.append('signature', selectedSignatureBlob, 'signature.' + extension);
+      const res = await fetch(signatureApi, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: formData
+      });
+      if (res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+        toast('署名画像を保存し、全訪問者のLPへ反映しました ✓');
+        selectedSignatureData = null;
+        selectedSignatureBlob = null;
+        loadCurrentSignature();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast(data.error || '署名画像の保存機能が利用できません（HTTP ' + res.status + '）', 'error');
+      }
+    } catch (_) {
+      toast('署名画像の保存機能に接続できません。Netlifyのデプロイ状態をご確認ください', 'error');
+    }
+    btn.textContent = 'この署名画像を保存';
     btn.disabled = false;
   }
 

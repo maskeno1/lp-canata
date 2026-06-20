@@ -615,6 +615,14 @@ img { max-width: 100%; display: block; }
   text-align: right;
   letter-spacing: .08em;
 }
+.profile__sign-img {
+  display: block;
+  width: auto;
+  height: 72px;
+  max-width: min(260px, 100%);
+  object-fit: contain;
+  margin-left: auto;
+}
 
 /* ===== Contact ===== */
 .contact__body {
@@ -780,12 +788,14 @@ img { max-width: 100%; display: block; }
 .footer__logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 20px;
+  margin-bottom: 24px;
 }
-#footerLogoImg { height: 26px; width: auto; object-fit: contain; }
+#footerLogoImg { height: 52px; width: auto; object-fit: contain; }
+#footerLogoSvg { width: 52px; height: 52px; flex-shrink: 0; }
 .footer__name {
-  font-size: 17px;
+  font-size: 34px;
+  line-height: 1;
   font-weight: 700;
   color: var(--white);
   letter-spacing: .04em;
