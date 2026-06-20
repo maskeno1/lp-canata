@@ -556,6 +556,7 @@
           </div>
           <div class="btn-actions" style="margin-top:12px">
             <button class="btn btn-primary btn-sm" id="btnSaveSignature" onclick="saveSignatureImage()" disabled>この署名画像を保存</button>
+            <button class="btn btn-danger btn-sm" id="btnDeleteSignature" onclick="deleteSignatureImage()" disabled>署名画像を削除</button>
           </div>
         </div>
         <div class="btn-actions">
@@ -1275,6 +1276,16 @@
     img.style.cssText = 'max-width:100%;max-height:86px;object-fit:contain;padding:8px';
     frame.innerHTML = '';
     frame.appendChild(img);
+    const deleteBtn = document.getElementById('btnDeleteSignature');
+    if (deleteBtn) deleteBtn.disabled = false;
+  }
+
+  function clearSignaturePreview() {
+    const frame = document.getElementById('signatureCurrentFrame');
+    if (!frame) return;
+    frame.innerHTML = '<div class="photo-empty"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M4 16c4-8 7 4 10-3 1-2 3-3 6-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>未設定</span></div>';
+    const deleteBtn = document.getElementById('btnDeleteSignature');
+    if (deleteBtn) deleteBtn.disabled = true;
   }
 
   async function loadCurrentSignature() {
@@ -1344,6 +1355,9 @@
         selectedSignatureData = null;
         selectedSignatureBlob = null;
         loadCurrentSignature();
+        btn.textContent = 'この署名画像を保存';
+        btn.disabled = true;
+        return;
       } else {
         const data = await res.json().catch(() => ({}));
         toast(data.error || '署名画像の保存機能が利用できません（HTTP ' + res.status + '）', 'error');
@@ -1353,6 +1367,35 @@
     }
     btn.textContent = 'この署名画像を保存';
     btn.disabled = false;
+  }
+
+  async function deleteSignatureImage() {
+    const btn = document.getElementById('btnDeleteSignature');
+    const saveBtn = document.getElementById('btnSaveSignature');
+    btn.textContent = '削除中...';
+    btn.disabled = true;
+    try {
+      const res = await fetch(signatureApi, {
+        method: 'DELETE',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+        selectedSignatureData = null;
+        selectedSignatureBlob = null;
+        if (signatureFile) signatureFile.value = '';
+        if (saveBtn) saveBtn.disabled = true;
+        clearSignaturePreview();
+        toast('署名画像を削除し、文字署名に戻しました ✓');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast(data.error || '署名画像を削除できません（HTTP ' + res.status + '）', 'error');
+        btn.disabled = false;
+      }
+    } catch (_) {
+      toast('署名画像の削除機能に接続できません。Netlifyのデプロイ状態をご確認ください', 'error');
+      btn.disabled = false;
+    }
+    btn.textContent = '署名画像を削除';
   }
 
   // ===== Badges (dynamic) =====
