@@ -548,6 +548,9 @@
               <span>未設定</span>
             </div>
           </div>
+          <div class="btn-actions" style="justify-content:flex-start;margin-top:0;margin-bottom:12px">
+            <button class="btn btn-danger btn-sm" id="btnDeleteSignature" onclick="deleteSignatureImage()" disabled>登録済みの署名画像を削除</button>
+          </div>
           <div class="drop-zone" id="signatureDropZone">
             <input type="file" id="signatureFile" accept="image/jpeg,image/png,image/webp" style="display:none">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -556,7 +559,6 @@
           </div>
           <div class="btn-actions" style="margin-top:12px">
             <button class="btn btn-primary btn-sm" id="btnSaveSignature" onclick="saveSignatureImage()" disabled>この署名画像を保存</button>
-            <button class="btn btn-danger btn-sm" id="btnDeleteSignature" onclick="deleteSignatureImage()" disabled>署名画像を削除</button>
           </div>
         </div>
         <div class="btn-actions">
@@ -1395,7 +1397,7 @@
       toast('署名画像の削除機能に接続できません。Netlifyのデプロイ状態をご確認ください', 'error');
       btn.disabled = false;
     }
-    btn.textContent = '署名画像を削除';
+    btn.textContent = '登録済みの署名画像を削除';
   }
 
   // ===== Badges (dynamic) =====
